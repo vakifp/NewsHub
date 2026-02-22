@@ -1,43 +1,41 @@
 "use client";
 
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { db } from "@/lib/firebase";
-import { collection,getDocs } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import Header from "@/components/Header";
+import Link from "next/link";
 
-export default function CategoryPage(){
+export default function CategoryPage() {
+  const { slug } = useParams();
 
-  const {slug}=useParams();
-
-  const [posts,setPosts]=useState([]);
-  const [activeTab,setActiveTab]=useState("latest");
-
+  const [posts, setPosts] = useState([]);
+  const [activeTab, setActiveTab] = useState("latest");
 
   /* WORD LIMIT FUNCTION */
-  function limitWords(text="",count){
-    return text.split(" ").slice(0,count).join(" ") +
-      (text.split(" ").length>count ? "..." : "");
+  function limitWords(text = "", count) {
+    return text.split(" ").slice(0, count).join(" ") +
+      (text.split(" ").length > count ? "..." : "");
   }
 
+  /* SLUGIFY */
+  function slugify(text = "") {
+    return text
+      ?.toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-");
+  }
 
   /* LOAD POSTS */
-  useEffect(()=>{
-    async function load(){
+  useEffect(() => {
+    async function load() {
+      const snap = await getDocs(collection(db, "posts"));
 
-      const snap = await getDocs(collection(db,"posts"));
-
-      const all = snap.docs.map(d=>({
-        id:d.id,
+      const all = snap.docs.map(d => ({
+        id: d.id,
         ...d.data()
       }));
-
-      function slugify(text){
-        return text
-          ?.toLowerCase()
-          .trim()
-          .replace(/\s+/g,"-");
-      }
 
       const normalizedSlug = slug?.toLowerCase();
 
@@ -48,26 +46,23 @@ export default function CategoryPage(){
       );
     }
 
-    if(slug) load();
-
-  },[slug]);
-
+    if (slug) load();
+  }, [slug]);
 
   /* SIDEBAR LISTS */
   const latest = [...posts]
-    .sort((a,b)=>(b.created||0)-(a.created||0))
-    .slice(0,5);
+    .sort((a, b) => (b.created || 0) - (a.created || 0))
+    .slice(0, 5);
 
   const popular = [...posts]
-    .sort((a,b)=>(b.views||0)-(a.views||0))
-    .slice(0,5);
+    .sort((a, b) => (b.views || 0) - (a.views || 0))
+    .slice(0, 5);
 
-  const list = activeTab==="latest" ? latest : popular;
+  const list = activeTab === "latest" ? latest : popular;
 
-
-  return(
+  return (
     <>
-      <Header/>
+      <Header />
 
       <section className="
         min-h-screen py-12 px-4
@@ -78,7 +73,6 @@ export default function CategoryPage(){
 
         <div className="max-w-7xl mx-auto grid lg:grid-cols-3 gap-10">
 
-
           {/* LEFT POSTS */}
           <div className="lg:col-span-2">
 
@@ -86,46 +80,49 @@ export default function CategoryPage(){
               {slug}
             </h1>
 
-            {posts.length===0 ? (
+            {posts.length === 0 ? (
               <p className="text-gray-500">No posts found.</p>
-            ):(
+            ) : (
               <div className="grid md:grid-cols-2 gap-8">
 
-                {posts.map(p=>(
-                  <div
-                    key={p.id}
-                    className="group border rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition bg-white dark:bg-[#0b1220]"
-                  >
+                {posts.map(p => (
+                  <Link key={p.id} href={`/blog/${slugify(p.title)}`}>
 
-                    {p.img && (
-                      <img
-                        src={p.img}
-                        className="h-48 w-full object-cover group-hover:scale-105 transition duration-500"
-                      />
-                    )}
+                    <div className="
+                      group border rounded-2xl overflow-hidden
+                      shadow-sm hover:shadow-xl hover:-translate-y-1
+                      transition duration-300 cursor-pointer
+                      bg-white dark:bg-[#0b1220]
+                    ">
 
-                    <div className="p-5">
+                      {p.img && (
+                        <img
+                          src={p.img}
+                          className="h-48 w-full object-cover group-hover:scale-105 transition duration-500"
+                        />
+                      )}
 
-                      {/* TITLE LIMIT */}
-                      <h2 className="font-bold text-lg group-hover:text-blue-500 transition">
-                        {limitWords(p.title,10)}
-                      </h2>
+                      <div className="p-5">
 
-                      {/* META */}
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                        {p.author || "Admin"} • {p.time || "2h ago"}
-                      </p>
+                        <h2 className="font-bold text-lg group-hover:text-blue-500 transition">
+                          {limitWords(p.title, 10)}
+                        </h2>
+
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                          {p.author || "Admin"} • {p.time || "2h ago"}
+                        </p>
+
+                      </div>
 
                     </div>
 
-                  </div>
+                  </Link>
                 ))}
 
               </div>
             )}
 
           </div>
-
 
 
           {/* RIGHT SIDEBAR */}
@@ -141,9 +138,9 @@ export default function CategoryPage(){
               <div className="flex mb-6 bg-gray-100 dark:bg-[#111827] p-1 rounded-full">
 
                 <button
-                  onClick={()=>setActiveTab("latest")}
+                  onClick={() => setActiveTab("latest")}
                   className={`flex-1 py-2 rounded-full text-sm font-semibold ${
-                    activeTab==="latest"
+                    activeTab === "latest"
                       ? "bg-red-500 text-white"
                       : "text-gray-500 dark:text-gray-400"
                   }`}
@@ -152,9 +149,9 @@ export default function CategoryPage(){
                 </button>
 
                 <button
-                  onClick={()=>setActiveTab("popular")}
+                  onClick={() => setActiveTab("popular")}
                   className={`flex-1 py-2 rounded-full text-sm font-semibold ${
-                    activeTab==="popular"
+                    activeTab === "popular"
                       ? "bg-red-500 text-white"
                       : "text-gray-500 dark:text-gray-400"
                   }`}
@@ -164,22 +161,23 @@ export default function CategoryPage(){
 
               </div>
 
-
               {/* LIST */}
               <div className="space-y-5">
 
-                {list.map((p,i)=>(
-                  <div key={p.id} className="flex gap-4">
+                {list.map((p, i) => (
+                  <Link key={p.id} href={`/post/${slugify(p.title)}`}>
+                    <div className="flex gap-4 cursor-pointer group">
 
-                    <span className="text-yellow-400 font-bold text-lg">
-                      {i+1}
-                    </span>
+                      <span className="text-yellow-400 font-bold text-lg">
+                        {i + 1}
+                      </span>
 
-                    <p className="text-sm hover:text-blue-500 transition">
-                      {limitWords(p.title,10)}
-                    </p>
+                      <p className="text-sm group-hover:text-blue-500 transition">
+                        {limitWords(p.title, 10)}
+                      </p>
 
-                  </div>
+                    </div>
+                  </Link>
                 ))}
 
               </div>

@@ -16,39 +16,32 @@ export default function Details(){
   const [activeTab,setActiveTab] = useState("latest");
 
 
-
-  /* ---------------- FETCH SINGLE POST ---------------- */
+  /* ---------------- LOAD DATA (OPTIMIZED) ---------------- */
   useEffect(()=>{
     async function load(){
 
-      const q = query(collection(db,"posts"),where("slug","==",slug));
-      const snap = await getDocs(q);
+      const singleQuery = getDocs(
+        query(collection(db,"posts"),where("slug","==",slug))
+      );
 
-      if(!snap.empty){
-        setPost(snap.docs[0].data());
-        return;
+      const allQuery = getDocs(collection(db,"posts"));
+
+      const [singleSnap, allSnap] = await Promise.all([
+        singleQuery,
+        allQuery
+      ]);
+
+      /* SINGLE POST */
+      if(!singleSnap.empty){
+        setPost(singleSnap.docs[0].data());
+      } else {
+        const found = allSnap.docs.find(d=>d.id===slug);
+        setPost(found ? found.data() : "notfound");
       }
 
-      const all = await getDocs(collection(db,"posts"));
-      const found = all.docs.find(d=>d.id===slug);
-
-      setPost(found ? found.data() : "notfound");
-    }
-
-    if(slug) load();
-
-  },[slug]);
-
-
-
-  /* ---------------- FETCH ALL POSTS ---------------- */
-  useEffect(()=>{
-    async function loadPosts(){
-
-      const snap = await getDocs(collection(db,"posts"));
-
+      /* ALL POSTS */
       setPosts(
-        snap.docs.map(d=>({
+        allSnap.docs.map(d=>({
           id:d.id,
           slug:d.data().slug || d.id,
           ...d.data()
@@ -56,8 +49,9 @@ export default function Details(){
       );
     }
 
-    loadPosts();
-  },[]);
+    if(slug) load();
+
+  },[slug]);
 
 
 
@@ -70,7 +64,7 @@ export default function Details(){
 
 
 
-  /* ---------------- DERIVED DATA ---------------- */
+  /* ---------------- DERIVED ---------------- */
 
   const latestPosts = posts.slice(0,5);
 
@@ -85,7 +79,7 @@ export default function Details(){
 
 
 
-  /* labels safe */
+  /* LABELS SAFE */
   const labels =
     typeof post?.labels==="string"
       ? post.labels.split(",").map(l=>l.trim())
@@ -95,7 +89,7 @@ export default function Details(){
 
 
 
-  /* reading time */
+  /* READ TIME */
   const readTime = Math.max(
     1,
     Math.ceil((post?.desc?.split(" ").length || 0)/200)
@@ -103,7 +97,7 @@ export default function Details(){
 
 
 
-  /* related posts */
+  /* RELATED */
   const related = useMemo(()=>{
     if(!post?.category) return [];
 
@@ -118,18 +112,49 @@ export default function Details(){
 
 
 
-  /* ---------------- LOADING STATES ---------------- */
+  /* ---------------- LOADER ---------------- */
 
   if(post===null){
-    return (
-      <div className="py-40 text-center text-gray-500">
-        Loading article...
-      </div>
+    return(
+      <section className="py-14 animate-pulse">
+        <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-3 gap-10">
+
+          <div className="lg:col-span-2 space-y-6">
+
+            <div className="h-4 w-48 bg-gray-300 dark:bg-gray-700 rounded"/>
+            <div className="h-[420px] bg-gray-300 dark:bg-gray-700 rounded-2xl"/>
+            <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded"/>
+            <div className="h-12 w-full bg-gray-300 dark:bg-gray-700 rounded"/>
+
+            <div className="flex gap-4">
+              <div className="h-4 w-24 bg-gray-300 dark:bg-gray-700 rounded"/>
+              <div className="h-4 w-24 bg-gray-300 dark:bg-gray-700 rounded"/>
+              <div className="h-4 w-24 bg-gray-300 dark:bg-gray-700 rounded"/>
+            </div>
+
+            {[1,2,3,4,5].map(i=>(
+              <div key={i} className="h-4 bg-gray-300 dark:bg-gray-700 rounded"/>
+            ))}
+          </div>
+
+          <div className="space-y-4 border p-6 rounded-2xl">
+            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded-full"/>
+            {[1,2,3,4,5].map(i=>(
+              <div key={i} className="h-4 bg-gray-300 dark:bg-gray-700 rounded"/>
+            ))}
+          </div>
+
+        </div>
+      </section>
     );
   }
 
+
+
+  /* ---------------- NOT FOUND ---------------- */
+
   if(post==="notfound"){
-    return (
+    return(
       <div className="py-40 text-center">
         <h2 className="text-2xl font-bold mb-4">
           Article not found
@@ -158,23 +183,20 @@ export default function Details(){
 
         <div className="max-w-7xl mx-auto grid lg:grid-cols-3 gap-10">
 
-
-          {/* LEFT ARTICLE */}
+          {/* ARTICLE */}
           <article className="lg:col-span-2">
 
-
-            {/* BREADCRUMB */}
-            <div className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+            {/* breadcrumb */}
+            <div className="text-sm text-gray-500 mb-6">
               <Link href="/">Home</Link> ›
-              <Link href={`/category/${post.category}`} className="mx-2 capitalize hover:text-red-500">
+              <Link href={`/category/${post.category}`} className="mx-2 capitalize">
                 {post.category}
               </Link>
-              › <span className="text-gray-800 dark:text-white">{post.title}</span>
+              › {post.title}
             </div>
 
 
-
-            {/* IMAGE */}
+            {/* image */}
             <div className="rounded-2xl overflow-hidden mb-8 shadow-lg">
               <img
                 src={post.img||"/placeholder.jpg"}
@@ -183,25 +205,20 @@ export default function Details(){
             </div>
 
 
-
-            {/* CATEGORY */}
+            {/* category */}
             <span className="px-3 py-1 text-xs rounded-full bg-red-500 text-white">
               {post.category}
             </span>
 
 
-
-            {/* TITLE */}
-            <h1 className="text-3xl md:text-5xl font-bold mt-4 mb-6
-            text-gray-900 dark:text-white">
+            {/* title */}
+            <h1 className="text-3xl md:text-5xl font-bold mt-4 mb-6">
               {post.title}
             </h1>
 
 
-
-            {/* META */}
-            <div className="flex flex-wrap gap-4 text-sm mb-8
-            text-gray-500 dark:text-gray-400">
+            {/* meta */}
+            <div className="flex flex-wrap gap-4 text-sm mb-8 text-gray-500">
               <span>By {post.author||"Admin"}</span>
               <span>•</span>
               <span>{post.time||"recent"}</span>
@@ -210,19 +227,14 @@ export default function Details(){
             </div>
 
 
-
-            {/* LABELS */}
-            {labels.length>0 && (
+            {/* labels */}
+            {labels.length>0 &&(
               <div className="flex flex-wrap gap-2 mb-10">
                 {labels.map(l=>(
                   <Link
                     key={l}
                     href={`/label/${l}`}
-                    className="
-                    px-3 py-1 text-xs rounded-full
-                    bg-gray-200 text-gray-800
-                    dark:bg-gray-700 dark:text-gray-100
-                    hover:bg-red-500 hover:text-white transition"
+                    className="px-3 py-1 text-xs rounded-full bg-gray-200 hover:bg-red-500 hover:text-white transition"
                   >
                     #{l}
                   </Link>
@@ -231,18 +243,15 @@ export default function Details(){
             )}
 
 
-
-            {/* CONTENT */}
+            {/* content */}
             <div className="prose prose-lg max-w-none dark:prose-invert">
               {post.desc}
             </div>
 
 
-
-            {/* SHARE */}
+            {/* share */}
             <div className="mt-12 border-t pt-6">
               <p className="font-semibold mb-3">Share Article</p>
-
               <div className="flex gap-3">
                 <button className="px-4 py-2 bg-blue-600 text-white rounded">Facebook</button>
                 <button className="px-4 py-2 bg-sky-500 text-white rounded">Twitter</button>
@@ -251,33 +260,21 @@ export default function Details(){
             </div>
 
 
-
-            {/* RELATED POSTS */}
-            {related.length>0 && (
+            {/* related */}
+            {related.length>0 &&(
               <div className="mt-16">
-
-                <h3 className="text-xl font-bold mb-6">
-                  Related Articles
-                </h3>
+                <h3 className="text-xl font-bold mb-6">Related Articles</h3>
 
                 <div className="grid md:grid-cols-3 gap-6">
-
                   {related.map(p=>(
                     <Link
                       key={p.id}
                       href={`/blog/${p.slug}`}
-                      className="
-                      border rounded-xl p-4
-                      hover:shadow-lg transition
-                      bg-white dark:bg-[#0b1220]
-                      border-gray-200 dark:border-gray-800"
+                      className="border rounded-xl p-4 hover:shadow-lg transition"
                     >
-                      <h4 className="font-semibold">
-                        {p.title}
-                      </h4>
+                      {p.title}
                     </Link>
                   ))}
-
                 </div>
               </div>
             )}
@@ -286,17 +283,12 @@ export default function Details(){
 
 
 
-          {/* RIGHT SIDEBAR */}
+          {/* SIDEBAR */}
           <aside>
 
-            <div className="
-            rounded-2xl p-6 border sticky top-24
-            bg-white border-gray-200
-            dark:bg-[#0b1220] dark:border-gray-800
-            ">
+            <div className="rounded-2xl p-6 border sticky top-24">
 
-              {/* TABS */}
-              <div className="flex mb-6 bg-gray-100 dark:bg-[#111827] p-1 rounded-full">
+              <div className="flex mb-6 bg-gray-100 p-1 rounded-full">
 
                 <button
                   onClick={()=>setActiveTab("latest")}
@@ -323,22 +315,17 @@ export default function Details(){
               </div>
 
 
-
-              {/* LIST */}
               <div className="space-y-5">
                 {sidebarList.map((p,i)=>(
                   <Link
                     key={p.id}
                     href={`/blog/${p.slug}`}
-                    className="flex gap-4 group"
+                    className="flex gap-4"
                   >
                     <span className="text-yellow-400 font-bold">
                       {i+1}
                     </span>
-
-                    <p className="text-sm group-hover:text-blue-500">
-                      {p.title}
-                    </p>
+                    <p className="text-sm">{p.title}</p>
                   </Link>
                 ))}
               </div>
