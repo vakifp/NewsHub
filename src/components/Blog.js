@@ -118,7 +118,7 @@ export default function BlogGrid(){
     <section className="
       py-14
       bg-white text-gray-900
-      dark:bg-gradient-to-br dark:from-[#0f172a] dark:via-[#111827] dark:to-[#020617]
+      dark:bg-linear-to-br dark:from-[#0f172a] dark:via-[#111827] dark:to-[#020617]
       dark:text-white
     ">
 
@@ -146,7 +146,7 @@ export default function BlogGrid(){
                 className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
               />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"/>
+              <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent"/>
 
               <div className="absolute bottom-0 p-6">
                 <h3 className="font-bold text-xl group-hover:text-blue-400">

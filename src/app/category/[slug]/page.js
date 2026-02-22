@@ -67,7 +67,7 @@ export default function CategoryPage() {
       <section className="
         min-h-screen py-12 px-4
         bg-white text-gray-900
-        dark:bg-gradient-to-br dark:from-[#0f172a] dark:via-[#111827] dark:to-[#020617]
+        dark:bg-linear-to-br dark:from-[#0f172a] dark:via-[#111827] dark:to-[#020617]
         dark:text-white
       ">
 

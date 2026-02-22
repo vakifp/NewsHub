@@ -122,7 +122,7 @@ export default function Details(){
           <div className="lg:col-span-2 space-y-6">
 
             <div className="h-4 w-48 bg-gray-300 dark:bg-gray-700 rounded"/>
-            <div className="h-[420px] bg-gray-300 dark:bg-gray-700 rounded-2xl"/>
+            <div className="h-105 bg-gray-300 dark:bg-gray-700 rounded-2xl"/>
             <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded"/>
             <div className="h-12 w-full bg-gray-300 dark:bg-gray-700 rounded"/>
 
@@ -200,7 +200,7 @@ export default function Details(){
             <div className="rounded-2xl overflow-hidden mb-8 shadow-lg">
               <img
                 src={post.img||"/placeholder.jpg"}
-                className="w-full h-[420px] object-cover"
+                className="w-full h-105 object-cover"
               />
             </div>
 
