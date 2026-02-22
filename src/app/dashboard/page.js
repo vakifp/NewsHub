@@ -35,11 +35,14 @@ export default function Dashboard(){
   }
 
   /* ---------- LOAD POSTS ---------- */
+useEffect(()=>{
   async function loadPosts(){
-    const q=query(collection(db,"posts"),orderBy("created","desc"));
-    const snap=await getDocs(q);
-    setPosts(snap.docs.map(d=>({id:d.id,...d.data()})));
+    const snap = await getDocs(collection(db,"posts"));
+    setPosts(snap.docs.map(d=>({ id:d.id, ...d.data() })));
   }
+
+  loadPosts();
+},[]);
 
   useEffect(()=>{loadPosts()},[]);
 

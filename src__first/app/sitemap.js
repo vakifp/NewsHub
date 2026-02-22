@@ -1,13 +1,10 @@
 import { db } from "@/lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
-export const dynamic = "force-dynamic";
-
 export default async function sitemap() {
-
   const base = "https://yourdomain.com";
 
-  /* POSTS */
+  /* ---------------- POSTS ---------------- */
   const postSnap = await getDocs(collection(db,"posts"));
 
   const posts = postSnap.docs.map(doc => ({
@@ -15,8 +12,7 @@ export default async function sitemap() {
     lastModified: new Date(doc.data().created || Date.now()),
   }));
 
-
-  /* CATEGORIES */
+  /* ---------------- CATEGORIES ---------------- */
   const catSnap = await getDocs(collection(db,"categories"));
 
   const categories = catSnap.docs
@@ -27,8 +23,7 @@ export default async function sitemap() {
       lastModified: new Date(),
     }));
 
-
-  /* STATIC */
+  /* ---------------- STATIC PAGES ---------------- */
   const staticPages = [
     { url: base, lastModified: new Date() },
     { url: `${base}/all-posts`, lastModified: new Date() },

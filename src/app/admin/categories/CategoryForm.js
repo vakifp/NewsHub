@@ -24,18 +24,14 @@ export default function CategoryManager(){
   }
 
   /* ---------- LOAD ---------- */
-  useEffect(()=>{ load() },[]);
-
+useEffect(()=>{
   async function load(){
-    const snap = await getDocs(collection(db,"categories"));
-
-    setCategories(
-      snap.docs.map(d=>({
-        id:d.id,
-        ...d.data()
-      }))
-    );
+    const snap = await getDocs(collection(db,"posts"));
+    setPosts(snap.docs.map(d=>({ id:d.id,...d.data() })));
   }
+
+  load();
+},[]);
 
   /* ---------- SUBMIT ---------- */
   async function submit(e){

@@ -11,11 +11,9 @@ export default function BlogGrid(){
   const [posts,setPosts] = useState([]);
   const [activeTab,setActiveTab] = useState("latest");
 
-
   /* LOAD POSTS */
   useEffect(()=>{
     async function load(){
-
       const q=query(
         collection(db,"posts"),
         orderBy("created","desc")
@@ -31,7 +29,6 @@ export default function BlogGrid(){
         }))
       );
     }
-
     load();
   },[]);
 
@@ -71,44 +68,12 @@ export default function BlogGrid(){
 
 
 
-  /* SKELETON LOADER */
+  /* LOADING */
   if(posts.length===0){
     return(
-      <section className="py-14">
-        <div className="max-w-7xl mx-auto px-4 animate-pulse">
-
-          {/* header */}
-          <div className="h-6 w-48 bg-gray-300 dark:bg-gray-700 rounded mb-10"/>
-
-          <div className="grid lg:grid-cols-3 gap-8">
-
-            {/* featured */}
-            <div className="h-96 rounded-2xl bg-gray-300 dark:bg-gray-700"/>
-
-            {/* side posts */}
-            <div className="space-y-5">
-              {[1,2,3,4].map(i=>(
-                <div key={i} className="flex gap-4">
-                  <div className="w-32 h-20 bg-gray-300 dark:bg-gray-700 rounded"/>
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-full"/>
-                    <div className="h-3 bg-gray-300 dark:bg-gray-700 rounded w-20"/>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* sidebar */}
-            <div className="p-6 rounded-2xl border space-y-4">
-              <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded-full"/>
-              {[1,2,3,4,5].map(i=>(
-                <div key={i} className="h-4 bg-gray-300 dark:bg-gray-700 rounded"/>
-              ))}
-            </div>
-
-          </div>
-        </div>
-      </section>
+      <div className="py-40 text-center text-gray-500">
+        Loading posts...
+      </div>
     );
   }
 
@@ -118,7 +83,7 @@ export default function BlogGrid(){
     <section className="
       py-14
       bg-white text-gray-900
-      dark:bg-linear-to-br dark:from-[#0f172a] dark:via-[#111827] dark:to-[#020617]
+      dark:bg-gradient-to-br dark:from-[#0f172a] dark:via-[#111827] dark:to-[#020617]
       dark:text-white
     ">
 
@@ -146,7 +111,7 @@ export default function BlogGrid(){
                 className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
               />
 
-              <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent"/>
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"/>
 
               <div className="absolute bottom-0 p-6">
                 <h3 className="font-bold text-xl group-hover:text-blue-400">
@@ -180,9 +145,9 @@ export default function BlogGrid(){
                     {shortTitle(post.title)}
                   </h4>
 
-            <p className="text-xs text-gray-500 mt-1 capitalize">
-  {post.category || "General"}
-</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {post.time || "recent"}
+                  </p>
                 </div>
               </Link>
             ))}
