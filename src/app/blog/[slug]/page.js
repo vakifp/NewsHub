@@ -7,159 +7,121 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import Header from "@/components/Header";
 import Link from "next/link";
 
-export default function Details(){
-
+export default function Details() {
   const { slug } = useParams();
 
-  const [post,setPost] = useState(null);
-  const [posts,setPosts] = useState([]);
-  const [activeTab,setActiveTab] = useState("latest");
+  const [post, setPost] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [activeTab, setActiveTab] = useState("latest");
 
+  /* ---------------- LOAD DATA ---------------- */
+  useEffect(() => {
+    if (!slug) return;
 
-  /* ---------------- LOAD DATA (OPTIMIZED) ---------------- */
-  useEffect(()=>{
-    async function load(){
-
+    (async () => {
       const singleQuery = getDocs(
-        query(collection(db,"posts"),where("slug","==",slug))
+        query(collection(db, "posts"), where("slug", "==", slug))
       );
 
-      const allQuery = getDocs(collection(db,"posts"));
+      const allQuery = getDocs(collection(db, "posts"));
 
       const [singleSnap, allSnap] = await Promise.all([
         singleQuery,
-        allQuery
+        allQuery,
       ]);
 
       /* SINGLE POST */
-      if(!singleSnap.empty){
+      if (!singleSnap.empty) {
         setPost(singleSnap.docs[0].data());
       } else {
-        const found = allSnap.docs.find(d=>d.id===slug);
+        const found = allSnap.docs.find((d) => d.id === slug);
         setPost(found ? found.data() : "notfound");
       }
 
       /* ALL POSTS */
       setPosts(
-        allSnap.docs.map(d=>({
-          id:d.id,
-          slug:d.data().slug || d.id,
-          ...d.data()
+        allSnap.docs.map((d) => ({
+          id: d.id,
+          slug: d.data().slug || d.id,
+          ...d.data(),
         }))
       );
-    }
-
-    if(slug) load();
-
-  },[slug]);
-
-
+    })();
+  }, [slug]);
 
   /* ---------------- PAGE TITLE ---------------- */
-  useEffect(()=>{
-    if(post && post!=="notfound"){
+  useEffect(() => {
+    if (post && post !== "notfound") {
       document.title = post.title + " | News";
     }
-  },[post]);
-
-
+  }, [post]);
 
   /* ---------------- DERIVED ---------------- */
 
-  const latestPosts = posts.slice(0,5);
+  const latestPosts = posts.slice(0, 5);
 
   const popularPosts = [...posts]
-    .sort((a,b)=>(b.views||0)-(a.views||0))
-    .slice(0,5);
+    .sort((a, b) => (b.views || 0) - (a.views || 0))
+    .slice(0, 5);
 
   const sidebarList =
-    activeTab==="latest"
-      ? latestPosts
-      : popularPosts;
-
-
+    activeTab === "latest" ? latestPosts : popularPosts;
 
   /* LABELS SAFE */
   const labels =
-    typeof post?.labels==="string"
-      ? post.labels.split(",").map(l=>l.trim())
+    typeof post?.labels === "string"
+      ? post.labels.split(",").map((l) => l.trim())
       : Array.isArray(post?.labels)
       ? post.labels
       : [];
 
-
-
   /* READ TIME */
   const readTime = Math.max(
     1,
-    Math.ceil((post?.desc?.split(" ").length || 0)/200)
+    Math.ceil((post?.desc?.split(" ").length || 0) / 200)
   );
 
-
-
-  /* RELATED */
-  const related = useMemo(()=>{
-    if(!post?.category) return [];
+  /* RELATED POSTS */
+  const related = useMemo(() => {
+    if (!post?.category) return [];
 
     return posts
-      .filter(p =>
-        p.category === post.category &&
-        p.slug !== post.slug
+      .filter(
+        (p) =>
+          p.category === post.category &&
+          p.slug !== post.slug
       )
-      .slice(0,3);
-
-  },[posts, post?.category, post?.slug]);
-
-
+      .slice(0, 3);
+  }, [posts, post]);
 
   /* ---------------- LOADER ---------------- */
-
-  if(post===null){
-    return(
+  if (post === null) {
+    return (
       <section className="py-14 animate-pulse">
         <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-3 gap-10">
-
           <div className="lg:col-span-2 space-y-6">
-
-            <div className="h-4 w-48 bg-gray-300 dark:bg-gray-700 rounded"/>
-            <div className="h-105 bg-gray-300 dark:bg-gray-700 rounded-2xl"/>
-            <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded"/>
-            <div className="h-12 w-full bg-gray-300 dark:bg-gray-700 rounded"/>
-
-            <div className="flex gap-4">
-              <div className="h-4 w-24 bg-gray-300 dark:bg-gray-700 rounded"/>
-              <div className="h-4 w-24 bg-gray-300 dark:bg-gray-700 rounded"/>
-              <div className="h-4 w-24 bg-gray-300 dark:bg-gray-700 rounded"/>
-            </div>
-
-            {[1,2,3,4,5].map(i=>(
-              <div key={i} className="h-4 bg-gray-300 dark:bg-gray-700 rounded"/>
-            ))}
+            <div className="h-4 w-48 bg-gray-300 dark:bg-gray-700 rounded" />
+            <div className="h-105 bg-gray-300 dark:bg-gray-700 rounded-2xl" />
+            <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded" />
+            <div className="h-12 bg-gray-300 dark:bg-gray-700 rounded" />
           </div>
 
           <div className="space-y-4 border p-6 rounded-2xl">
-            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded-full"/>
-            {[1,2,3,4,5].map(i=>(
-              <div key={i} className="h-4 bg-gray-300 dark:bg-gray-700 rounded"/>
+            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded-full" />
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-4 bg-gray-300 dark:bg-gray-700 rounded" />
             ))}
           </div>
-
         </div>
       </section>
     );
   }
 
-
-
   /* ---------------- NOT FOUND ---------------- */
-
-  if(post==="notfound"){
-    return(
+  if (post === "notfound") {
+    return (
       <div className="py-40 text-center">
-        <h2 className="text-2xl font-bold mb-4">
-          Article not found
-        </h2>
-
+        <h2 className="text-2xl font-bold mb-4">Article not found</h2>
         <Link href="/" className="text-blue-600 underline">
           Go Home
         </Link>
@@ -167,20 +129,13 @@ export default function Details(){
     );
   }
 
-
-
   /* ================= UI ================= */
 
-  return(
+  return (
     <>
-      <Header/>
+      <Header />
 
-      <section className="
-        min-h-screen py-14 px-4
-        bg-white text-gray-900
-        dark:bg-[#020617] dark:text-gray-100
-      ">
-
+      <section className="min-h-screen py-14 px-4 bg-white text-gray-900 dark:bg-[#020617] dark:text-gray-100">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-3 gap-10">
 
           {/* ARTICLE */}
@@ -195,40 +150,38 @@ export default function Details(){
               › {post.title}
             </div>
 
-
             {/* image */}
             <div className="rounded-2xl overflow-hidden mb-8 shadow-lg">
               <img
-                src={post.img||"/placeholder.jpg"}
+                src={post.img || "/placeholder.jpg"}
+                alt={post.title || "Article image"}
                 className="w-full h-105 object-cover"
               />
             </div>
-
 
             {/* category */}
             <span className="px-3 py-1 text-xs rounded-full bg-red-500 text-white">
               {post.category}
             </span>
 
-
             {/* title */}
             <h1 className="text-3xl md:text-5xl font-bold mt-4 mb-6">
               {post.title}
             </h1>
+
             {/* meta */}
             <div className="flex flex-wrap gap-4 text-sm mb-8 text-gray-500">
-              <span>By {post.author||"Admin"}</span>
+              <span>By {post.author || "Admin"}</span>
               <span>•</span>
-              <span>{post.time|| post.category}</span>
+              <span>{post.time || post.category}</span>
               <span>•</span>
               <span>{readTime} min read</span>
             </div>
 
-
             {/* labels */}
-            {labels.length>0 &&(
+            {labels.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-10">
-                {labels.map(l=>(
+                {labels.map((l) => (
                   <Link
                     key={l}
                     href={`/label/${l}`}
@@ -240,12 +193,10 @@ export default function Details(){
               </div>
             )}
 
-
             {/* content */}
             <div className="prose prose-lg max-w-none dark:prose-invert">
               {post.desc}
             </div>
-
 
             {/* share */}
             <div className="mt-12 border-t pt-6">
@@ -257,14 +208,12 @@ export default function Details(){
               </div>
             </div>
 
-
             {/* related */}
-            {related.length>0 &&(
+            {related.length > 0 && (
               <div className="mt-16">
                 <h3 className="text-xl font-bold mb-6">Related Articles</h3>
-
                 <div className="grid md:grid-cols-3 gap-6">
-                  {related.map(p=>(
+                  {related.map((p) => (
                     <Link
                       key={p.id}
                       href={`/blog/${p.slug}`}
@@ -279,19 +228,16 @@ export default function Details(){
 
           </article>
 
-
-
           {/* SIDEBAR */}
           <aside>
-
             <div className="rounded-2xl p-6 border sticky top-24">
 
               <div className="flex mb-6 bg-gray-100 p-1 rounded-full">
 
                 <button
-                  onClick={()=>setActiveTab("latest")}
+                  onClick={() => setActiveTab("latest")}
                   className={`flex-1 py-2 rounded-full text-sm ${
-                    activeTab==="latest"
+                    activeTab === "latest"
                       ? "bg-red-500 text-white"
                       : "text-gray-500"
                   }`}
@@ -300,9 +246,9 @@ export default function Details(){
                 </button>
 
                 <button
-                  onClick={()=>setActiveTab("popular")}
+                  onClick={() => setActiveTab("popular")}
                   className={`flex-1 py-2 rounded-full text-sm ${
-                    activeTab==="popular"
+                    activeTab === "popular"
                       ? "bg-red-500 text-white"
                       : "text-gray-500"
                   }`}
@@ -312,24 +258,16 @@ export default function Details(){
 
               </div>
 
-
               <div className="space-y-5">
-                {sidebarList.map((p,i)=>(
-                  <Link
-                    key={p.id}
-                    href={`/blog/${p.slug}`}
-                    className="flex gap-4"
-                  >
-                    <span className="text-yellow-400 font-bold">
-                      {i+1}
-                    </span>
+                {sidebarList.map((p, i) => (
+                  <Link key={p.id} href={`/blog/${p.slug}`} className="flex gap-4">
+                    <span className="text-yellow-400 font-bold">{i + 1}</span>
                     <p className="text-sm">{p.title}</p>
                   </Link>
                 ))}
               </div>
 
             </div>
-
           </aside>
 
         </div>
