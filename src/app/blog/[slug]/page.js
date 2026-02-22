@@ -19,28 +19,33 @@ export default function Details() {
     if (!slug) return;
 
     (async () => {
-      const singleQuery = getDocs(
+      /* FETCH SINGLE POST */
+      const snap = await getDocs(
         query(collection(db, "posts"), where("slug", "==", slug))
       );
 
-      const allQuery = getDocs(collection(db, "posts"));
-
-      const [singleSnap, allSnap] = await Promise.all([
-        singleQuery,
-        allQuery,
-      ]);
-
-      /* SINGLE POST */
-      if (!singleSnap.empty) {
-        setPost(singleSnap.docs[0].data());
-      } else {
-        const found = allSnap.docs.find((d) => d.id === slug);
-        setPost(found ? found.data() : "notfound");
+      if (snap.empty) {
+        setPost("notfound");
+        return;
       }
 
-      /* ALL POSTS */
+      const currentPost = {
+        id: snap.docs[0].id,
+        ...snap.docs[0].data(),
+      };
+
+      setPost(currentPost);
+
+      /* FETCH RELATED POSTS ONLY */
+      const relatedSnap = await getDocs(
+        query(
+          collection(db, "posts"),
+          where("category", "==", currentPost.category)
+        )
+      );
+
       setPosts(
-        allSnap.docs.map((d) => ({
+        relatedSnap.docs.map((d) => ({
           id: d.id,
           slug: d.data().slug || d.id,
           ...d.data(),
@@ -56,18 +61,26 @@ export default function Details() {
     }
   }, [post]);
 
-  /* ---------------- DERIVED ---------------- */
+  /* ---------------- SIDEBAR DATA ---------------- */
 
-  const latestPosts = posts.slice(0, 5);
+  const latestPosts = useMemo(
+    () => posts.slice(0, 5),
+    [posts]
+  );
 
-  const popularPosts = [...posts]
-    .sort((a, b) => (b.views || 0) - (a.views || 0))
-    .slice(0, 5);
+  const popularPosts = useMemo(
+    () =>
+      [...posts]
+        .sort((a, b) => (b.views || 0) - (a.views || 0))
+        .slice(0, 5),
+    [posts]
+  );
 
   const sidebarList =
     activeTab === "latest" ? latestPosts : popularPosts;
 
-  /* LABELS SAFE */
+  /* ---------------- LABELS ---------------- */
+
   const labels =
     typeof post?.labels === "string"
       ? post.labels.split(",").map((l) => l.trim())
@@ -75,30 +88,30 @@ export default function Details() {
       ? post.labels
       : [];
 
-  /* READ TIME */
+  /* ---------------- READ TIME ---------------- */
+
   const readTime = Math.max(
     1,
     Math.ceil((post?.desc?.split(" ").length || 0) / 200)
   );
 
-  /* RELATED POSTS */
+  /* ---------------- RELATED POSTS ---------------- */
+
   const related = useMemo(() => {
     if (!post?.category) return [];
 
     return posts
-      .filter(
-        (p) =>
-          p.category === post.category &&
-          p.slug !== post.slug
-      )
+      .filter((p) => p.slug !== post.slug)
       .slice(0, 3);
   }, [posts, post]);
 
   /* ---------------- LOADER ---------------- */
+
   if (post === null) {
     return (
       <section className="py-14 animate-pulse">
         <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-3 gap-10">
+
           <div className="lg:col-span-2 space-y-6">
             <div className="h-4 w-48 bg-gray-300 dark:bg-gray-700 rounded" />
             <div className="h-105 bg-gray-300 dark:bg-gray-700 rounded-2xl" />
@@ -112,12 +125,14 @@ export default function Details() {
               <div key={i} className="h-4 bg-gray-300 dark:bg-gray-700 rounded" />
             ))}
           </div>
+
         </div>
       </section>
     );
   }
 
   /* ---------------- NOT FOUND ---------------- */
+
   if (post === "notfound") {
     return (
       <div className="py-40 text-center">
@@ -136,6 +151,7 @@ export default function Details() {
       <Header />
 
       <section className="min-h-screen py-14 px-4 bg-white text-gray-900 dark:bg-[#020617] dark:text-gray-100">
+
         <div className="max-w-7xl mx-auto grid lg:grid-cols-3 gap-10">
 
           {/* ARTICLE */}
@@ -173,7 +189,7 @@ export default function Details() {
             <div className="flex flex-wrap gap-4 text-sm mb-8 text-gray-500">
               <span>By {post.author || "Admin"}</span>
               <span>•</span>
-              <span>{post.time || post.category}</span>
+              <span>{post.time || "recent"}</span>
               <span>•</span>
               <span>{readTime} min read</span>
             </div>
@@ -212,6 +228,7 @@ export default function Details() {
             {related.length > 0 && (
               <div className="mt-16">
                 <h3 className="text-xl font-bold mb-6">Related Articles</h3>
+
                 <div className="grid md:grid-cols-3 gap-6">
                   {related.map((p) => (
                     <Link
@@ -230,6 +247,7 @@ export default function Details() {
 
           {/* SIDEBAR */}
           <aside>
+
             <div className="rounded-2xl p-6 border sticky top-24">
 
               <div className="flex mb-6 bg-gray-100 p-1 rounded-full">
@@ -268,6 +286,7 @@ export default function Details() {
               </div>
 
             </div>
+
           </aside>
 
         </div>
