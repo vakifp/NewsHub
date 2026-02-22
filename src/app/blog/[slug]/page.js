@@ -215,13 +215,11 @@ export default function Details(){
             <h1 className="text-3xl md:text-5xl font-bold mt-4 mb-6">
               {post.title}
             </h1>
-
-
             {/* meta */}
             <div className="flex flex-wrap gap-4 text-sm mb-8 text-gray-500">
               <span>By {post.author||"Admin"}</span>
               <span>•</span>
-              <span>{post.time||"recent"}</span>
+              <span>{post.time|| post.category}</span>
               <span>•</span>
               <span>{readTime} min read</span>
             </div>

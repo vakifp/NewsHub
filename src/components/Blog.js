@@ -180,9 +180,9 @@ export default function BlogGrid(){
                     {shortTitle(post.title)}
                   </h4>
 
-                  <p className="text-xs text-gray-500 mt-1">
-                    {post.time || "recent"}
-                  </p>
+            <p className="text-xs text-gray-500 mt-1 capitalize">
+  {post.category || "General"}
+</p>
                 </div>
               </Link>
             ))}
