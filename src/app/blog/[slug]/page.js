@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import Header from "@/components/Header";
 import Link from "next/link";
+import Footer from "@/components/Footer";
 
 export default function Details() {
   const { slug } = useParams();
@@ -250,7 +251,7 @@ export default function Details() {
 
             <div className="rounded-2xl p-6 border sticky top-24">
 
-              <div className="flex mb-6 bg-gray-100 p-1 rounded-full">
+              <div className="flex mb-6 bg-gray-100 dark:bg-[#111827] p-1 rounded-full">
 
                 <button
                   onClick={() => setActiveTab("latest")}
@@ -291,6 +292,7 @@ export default function Details() {
 
         </div>
       </section>
+      <Footer />
     </>
   );
 }

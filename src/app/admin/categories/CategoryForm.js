@@ -11,27 +11,154 @@ import {
   doc
 } from "firebase/firestore";
 
+import {
+  DndContext,
+  closestCenter
+} from "@dnd-kit/core";
+
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove
+} from "@dnd-kit/sortable";
+
+import { CSS } from "@dnd-kit/utilities";
+
+
+/* ================= ROW ================= */
+function Row({cat,edit,toggle,remove}){
+
+  const {attributes,listeners,setNodeRef,transform,transition} =
+    useSortable({id:cat.id});
+
+  const style={
+    transform:CSS.Transform.toString(transform),
+    transition
+  };
+
+  return(
+    <tr ref={setNodeRef} style={style} className="border-t">
+
+      <td className="p-4 cursor-grab text-gray-400" {...attributes} {...listeners}>
+        ☰
+      </td>
+
+      <td className="p-4 font-medium">{cat.name}</td>
+
+      <td className="p-4 text-gray-500">/{cat.slug}</td>
+
+      <td className="p-4">
+        <span className={`px-3 py-1 rounded-full text-xs ${
+          cat.visible
+            ? "bg-green-100 text-green-700"
+            : "bg-gray-200 text-gray-600"
+        }`}>
+          {cat.visible ? "Visible" : "Hidden"}
+        </span>
+      </td>
+
+      <td className="p-4 flex gap-2 justify-center">
+
+        <button
+          onClick={()=>edit(cat)}
+          className="px-3 py-1 bg-blue-600 text-white rounded text-xs"
+        >
+          Edit
+        </button>
+
+        <button
+          onClick={()=>toggle(cat)}
+          className="px-3 py-1 bg-yellow-500 text-white rounded text-xs"
+        >
+          {cat.visible ? "Hide" : "Show"}
+        </button>
+
+        <button
+          onClick={()=>remove(cat.id)}
+          className="px-3 py-1 bg-red-500 text-white rounded text-xs"
+        >
+          Delete
+        </button>
+
+      </td>
+
+    </tr>
+  );
+}
+
+
+
+/* ================= MAIN ================= */
 export default function CategoryManager(){
 
-  const [categories,setCategories] = useState([]);
-  const [name,setName] = useState("");
-  const [editingId,setEditingId] = useState(null);
-  const [loading,setLoading] = useState(false);
+  const [categories,setCategories]=useState([]);
+  const [name,setName]=useState("");
+  const [editingId,setEditingId]=useState(null);
+  const [loading,setLoading]=useState(false);
+
+
 
   /* ---------- SLUG ---------- */
   function slugify(text){
     return text.toLowerCase().trim().replace(/\s+/g,"-");
   }
 
+
+
   /* ---------- LOAD ---------- */
-useEffect(()=>{
+  useEffect(()=>{
+    load();
+  },[]);
+
+
   async function load(){
-    const snap = await getDocs(collection(db,"posts"));
-    setPosts(snap.docs.map(d=>({ id:d.id,...d.data() })));
+    const snap = await getDocs(collection(db,"categories"));
+
+    const list = snap.docs.map(d=>({
+      id:d.id,
+      ...d.data()
+    }));
+
+    /* sort safely even if order missing */
+    list.sort((a,b)=>
+      (a.order ?? 9999) - (b.order ?? 9999)
+    );
+
+    setCategories(list);
   }
 
-  load();
-},[]);
+
+
+  /* ---------- SAVE ORDER ---------- */
+  async function saveOrder(items){
+    setCategories(items);
+
+    await Promise.all(
+      items.map((cat,index)=>
+        updateDoc(doc(db,"categories",cat.id),{
+          order:index
+        })
+      )
+    );
+  }
+
+
+
+  /* ---------- DRAG ---------- */
+  function handleDragEnd(e){
+    const {active,over}=e;
+    if(!over || active.id===over.id) return;
+
+    const oldIndex = categories.findIndex(i=>i.id===active.id);
+    const newIndex = categories.findIndex(i=>i.id===over.id);
+
+    const newItems=arrayMove(categories,oldIndex,newIndex);
+
+    saveOrder(newItems);
+  }
+
+
 
   /* ---------- SUBMIT ---------- */
   async function submit(e){
@@ -42,23 +169,27 @@ useEffect(()=>{
 
     const data={
       name:name.trim(),
-      slug:slugify(name),
+      slug:slugify(name)
     };
 
     if(editingId){
       await updateDoc(doc(db,"categories",editingId),data);
       setEditingId(null);
-    }else{
+    }
+    else{
       await addDoc(collection(db,"categories"),{
         ...data,
-        visible:true
+        visible:true,
+        order:categories.length
       });
     }
 
     setName("");
-    load();
+    await load();
     setLoading(false);
   }
+
+
 
   /* ---------- EDIT ---------- */
   function edit(cat){
@@ -66,6 +197,8 @@ useEffect(()=>{
     setEditingId(cat.id);
     window.scrollTo({top:0,behavior:"smooth"});
   }
+
+
 
   /* ---------- DELETE ---------- */
   async function remove(id){
@@ -75,7 +208,9 @@ useEffect(()=>{
     }
   }
 
-  /* ---------- TOGGLE VISIBILITY ---------- */
+
+
+  /* ---------- TOGGLE ---------- */
   async function toggle(cat){
     await updateDoc(doc(db,"categories",cat.id),{
       visible:!cat.visible
@@ -83,9 +218,12 @@ useEffect(()=>{
     load();
   }
 
+
+
   /* ================= UI ================= */
   return(
     <div className="space-y-8">
+
 
       {/* FORM */}
       <form
@@ -128,72 +266,46 @@ useEffect(()=>{
       <div className="bg-white rounded-2xl shadow border overflow-hidden">
 
         <div className="p-5 font-semibold border-b">
-          Categories ({categories.length})
+          Drag categories to reorder
         </div>
 
-        <table className="w-full text-sm">
+        <DndContext
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
 
-          <thead className="bg-gray-50 text-gray-600">
-            <tr>
-              <th className="p-4 text-left">Name</th>
-              <th className="p-4 text-left">Slug</th>
-              <th className="p-4 text-left">Status</th>
-              <th className="p-4 text-center">Actions</th>
-            </tr>
-          </thead>
+          <table className="w-full text-sm">
 
-          <tbody>
-            {categories.map(cat=>(
-              <tr key={cat.id} className="border-t">
-
-                <td className="p-4 font-medium">
-                  {cat.name}
-                </td>
-
-                <td className="p-4 text-gray-500">
-                  /{cat.slug}
-                </td>
-
-                <td className="p-4">
-                  <span className={`px-3 py-1 rounded-full text-xs ${
-                    cat.visible
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-200 text-gray-600"
-                  }`}>
-                    {cat.visible ? "Visible" : "Hidden"}
-                  </span>
-                </td>
-
-                <td className="p-4 flex gap-2 justify-center">
-
-                  <button
-                    onClick={()=>edit(cat)}
-                    className="px-3 py-1 bg-blue-600 text-white rounded text-xs"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    onClick={()=>toggle(cat)}
-                    className="px-3 py-1 bg-yellow-500 text-white rounded text-xs"
-                  >
-                    {cat.visible ? "Hide" : "Show"}
-                  </button>
-
-                  <button
-                    onClick={()=>remove(cat.id)}
-                    className="px-3 py-1 bg-red-500 text-white rounded text-xs"
-                  >
-                    Delete
-                  </button>
-
-                </td>
-
+            <thead className="bg-gray-50 text-gray-600">
+              <tr>
+                <th className="p-4">Move</th>
+                <th className="p-4 text-left">Name</th>
+                <th className="p-4 text-left">Slug</th>
+                <th className="p-4 text-left">Status</th>
+                <th className="p-4 text-center">Actions</th>
               </tr>
-            ))}
-          </tbody>
+            </thead>
 
-        </table>
+            <SortableContext
+              items={categories.map(c=>c.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <tbody>
+                {categories.map(cat=>(
+                  <Row
+                    key={cat.id}
+                    cat={cat}
+                    edit={edit}
+                    toggle={toggle}
+                    remove={remove}
+                  />
+                ))}
+              </tbody>
+            </SortableContext>
+
+          </table>
+
+        </DndContext>
 
       </div>
 

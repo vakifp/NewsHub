@@ -1,14 +1,42 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect,useState } from "react";
+import { db } from "@/lib/firebase";
+import { doc,getDoc } from "firebase/firestore";
+
+import {
+  Facebook,
+  Twitter,
+  Instagram,
+  Youtube
+} from "lucide-react";
 
 export default function Footer(){
 
   const year = new Date().getFullYear();
 
+  const [settings,setSettings]=useState(null);
+
+  /* LOAD SETTINGS */
+  useEffect(()=>{
+    async function load(){
+      const snap = await getDoc(doc(db,"settings","main"));
+      if(snap.exists()) setSettings(snap.data());
+    }
+    load();
+  },[]);
+
+
+  /* LOADING SAFE */
+  if(!settings){
+    return null;
+  }
+
+
   return(
     <footer className="
-       border-t
+      border-t
       bg-white text-gray-700 border-gray-200
       dark:bg-[#020617] dark:text-gray-300 dark:border-gray-800
     ">
@@ -17,14 +45,20 @@ export default function Footer(){
 
         {/* LOGO + DESC */}
         <div>
-          <h2 className="text-2xl font-bold text-red-500 mb-4">
-            NewsSite
-          </h2>
+
+          {/* LOGO */}
+          {settings.logo ? (
+            <img src={settings.logo} className="h-10 mb-4"/>
+          ):(
+            <h2 className="text-2xl font-bold text-red-500 mb-4">
+              {settings.siteName || "NewsSite"}
+            </h2>
+          )}
 
           <p className="text-sm leading-relaxed">
-            Latest news, trending stories, sports updates,
-            technology insights and more — all in one place.
+            {settings.footerText || "Latest news and updates in one place."}
           </p>
+
         </div>
 
 
@@ -67,12 +101,35 @@ export default function Footer(){
             Follow Us
           </h3>
 
-          <div className="flex gap-4 text-xl">
+          <div className="flex gap-4">
 
-            <a className="hover:text-blue-500 transition">📘</a>
-            <a className="hover:text-sky-400 transition">🐦</a>
-            <a className="hover:text-pink-500 transition">📸</a>
-            <a className="hover:text-red-500 transition">▶</a>
+            {settings.facebook && (
+              <a href={settings.facebook} target="_blank"
+                className="p-2 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900">
+                <Facebook size={20}/>
+              </a>
+            )}
+
+            {settings.twitter && (
+              <a href={settings.twitter} target="_blank"
+                className="p-2 rounded-full hover:bg-sky-100 dark:hover:bg-sky-900">
+                <Twitter size={20}/>
+              </a>
+            )}
+
+            {settings.instagram && (
+              <a href={settings.instagram} target="_blank"
+                className="p-2 rounded-full hover:bg-pink-100 dark:hover:bg-pink-900">
+                <Instagram size={20}/>
+              </a>
+            )}
+
+            {settings.youtube && (
+              <a href={settings.youtube} target="_blank"
+                className="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900">
+                <Youtube size={20}/>
+              </a>
+            )}
 
           </div>
 
@@ -85,12 +142,9 @@ export default function Footer(){
 
 
 
-      {/* BOTTOM BAR */}
-      <div className="
-        text-center text-sm py-6 border-t
-        border-gray-200 dark:border-gray-800
-      ">
-        © {year} NewsSite. All rights reserved.
+      {/* BOTTOM */}
+      <div className="text-center text-sm py-6 border-t border-gray-200 dark:border-gray-800">
+        © {year} {settings.copyright || settings.siteName || "NewsSite"}
       </div>
 
     </footer>

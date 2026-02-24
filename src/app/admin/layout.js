@@ -6,42 +6,55 @@ import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 
-export default function AdminLayout({children}){
+/* ICONS */
+import {
+  LayoutDashboard,
+  FileText,
+  Folder,
+  File,
+  Users,
+  Settings,
+  LogOut,
+  Menu,
+  Search
+} from "lucide-react";
 
+export default function AdminLayout({ children }) {
   const path = usePathname();
   const router = useRouter();
 
-  const [open,setOpen] = useState(false);
-  const [user,setUser] = useState("Admin");
+  const [open, setOpen] = useState(false);
+  const [user, setUser] = useState("Admin");
 
-  /* ---------- GET USER ---------- */
-  useEffect(()=>{
+  /* GET USER */
+  useEffect(() => {
     const u = localStorage.getItem("name");
-    if(u) setUser(u);
-  },[]);
+    if (u) setUser(u);
+  }, []);
 
-  /* ---------- LOGOUT ---------- */
-  async function logout(){
+  /* LOGOUT */
+  async function logout() {
     await signOut(auth);
     router.push("/login");
   }
 
+  /* MENU */
   const menu = [
-    {name:"Dashboard", href:"/admin", icon:"📊"},
-    {name:"Posts", href:"/admin/posts", icon:"📝"},
-    {name:"Categories", href:"/admin/categories", icon:"📂"},
-    {name:"Tags", href:"/admin/tags", icon:"🏷"},
-    {name:"Users", href:"/admin/users", icon:"👤"},
-    {name:"Settings", href:"/admin/settings", icon:"⚙️"}
+    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { name: "Posts", href: "/admin/posts", icon: FileText },
+    { name: "Categories", href: "/admin/categories", icon: Folder },
+    { name: "Pages", href: "/admin/pages", icon: File },
+    { name: "Users", href: "/admin/users", icon: Users },
+    { name: "Settings", href: "/admin/settings", icon: Settings }
   ];
 
-  return(
+  return (
     <div className="min-h-screen flex bg-gray-100">
 
       {/* MOBILE OVERLAY */}
       {open && (
         <div
-          onClick={()=>setOpen(false)}
+          onClick={() => setOpen(false)}
           className="fixed inset-0 bg-black/40 z-40 md:hidden"
         />
       )}
@@ -62,30 +75,34 @@ export default function AdminLayout({children}){
 
         <nav className="space-y-2 text-sm">
 
-          {menu.map(item=>(
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={()=>setOpen(false)}
-              className={`
-                flex items-center gap-3 px-4 py-2 rounded-lg transition
-                ${path===item.href
-                  ? "bg-blue-600 text-white"
-                  : "hover:bg-gray-700"}
-              `}
-            >
-              <span>{item.icon}</span>
-              {item.name}
-            </Link>
-          ))}
+          {menu.map(item => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className={`
+                  flex items-center gap-3 px-4 py-2 rounded-lg transition
+                  ${path === item.href
+                    ? "bg-blue-600 text-white"
+                    : "hover:bg-gray-700"}
+                `}
+              >
+                <Icon className="w-5 h-5" />
+                {item.name}
+              </Link>
+            );
+          })}
 
         </nav>
 
-        {/* LOGOUT BUTTON */}
+        {/* LOGOUT */}
         <button
           onClick={logout}
-          className="w-full mt-6 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+          className="w-full mt-6 flex items-center justify-center gap-2 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
         >
+          <LogOut size={18} />
           Logout
         </button>
 
@@ -102,18 +119,23 @@ export default function AdminLayout({children}){
           {/* LEFT */}
           <div className="flex items-center gap-4">
 
-            {/* MOBILE MENU BTN */}
+            {/* MOBILE BTN */}
             <button
-              onClick={()=>setOpen(true)}
-              className="md:hidden text-xl"
+              onClick={() => setOpen(true)}
+              className="md:hidden"
             >
-              ☰
+              <Menu />
             </button>
 
-            <input
-              placeholder="Search..."
-              className="bg-gray-100 px-4 py-2 rounded-lg text-sm w-40 md:w-72 outline-none"
-            />
+            {/* SEARCH */}
+            <div className="flex items-center bg-gray-100 px-3 rounded-lg">
+              <Search size={16} className="text-gray-500" />
+              <input
+                placeholder="Search..."
+                className="bg-transparent px-2 py-2 text-sm w-40 md:w-72 outline-none"
+              />
+            </div>
+
           </div>
 
           {/* RIGHT */}
@@ -123,7 +145,7 @@ export default function AdminLayout({children}){
               {user}
             </span>
 
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500"/>
+            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500" />
 
           </div>
 

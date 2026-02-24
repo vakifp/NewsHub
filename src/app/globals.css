@@ -1,5 +1,26 @@
 @import "tailwindcss";
 
-* {
-  transition: background-color .3s, color .3s, border-color .3s;
+/* Smooth UI */
+*{
+  transition: background-color .25s, color .25s, border-color .25s;
+}
+
+/* Default light borders */
+:root{
+  --border-light: #e5e7eb; /* light gray */
+}
+
+/* Apply to cards, tables, inputs */
+.border,
+.card,
+table,
+input,
+textarea,
+select{
+  border-color: var(--border-light) !important;
+}
+
+/* Dark mode borders */
+.dark{
+  --border-light:#1f2937;
 }
