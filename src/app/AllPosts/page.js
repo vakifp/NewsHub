@@ -4,14 +4,11 @@ import { useEffect, useState, useMemo } from "react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import Link from "next/link";
-import LatestNews from "@/components/LatestNews";
-import PopularNews from "@/components/PopularNews";
 import Header from "@/components/Header";
 
 export default function AllPosts(){
 
   const [posts,setPosts]=useState([]);
-  const [activeTab,setActiveTab]=useState("latest");
 
   /* ---------------- FETCH ---------------- */
   useEffect(()=>{
@@ -31,30 +28,26 @@ export default function AllPosts(){
   },[]);
 
 
-  /* ---------------- WORD LIMIT FUNCTION ---------------- */
+  /* ---------------- WORD LIMIT ---------------- */
   function limitWords(text="",count){
-    return text.split(" ").slice(0,count).join(" ") +
-      (text.split(" ").length > count ? "..." : "");
+    const plain = text.replace(/<[^>]+>/g,""); // remove HTML
+    const words = plain.split(" ");
+    return words.slice(0,count).join(" ") +
+      (words.length>count ? "..." : "");
   }
 
 
-  /* ---------------- LISTS ---------------- */
-  const latestPosts = useMemo(()=>posts.slice(0,5),[posts]);
-
-  const popularPosts = useMemo(()=>(
-    [...posts].sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,5)
-  ),[posts]);
+  /* ---------------- LOADING ---------------- */
+  if(posts.length===0){
+    return <div className="py-40 text-center">Loading posts...</div>;
+  }
 
 
   return(
     <>
     <Header />
-    <section className="
-      py-14
-      bg-white text-gray-900
-      dark:bg-linear-to-br dark:from-[#0f172a] dark:via-[#111827] dark:to-[#020617]
-      dark:text-white
-    ">
+
+    <section className="py-14 bg-white text-gray-900 dark:bg-[#020617] dark:text-gray-100">
 
       <div className="max-w-7xl mx-auto px-4">
 
@@ -65,49 +58,43 @@ export default function AllPosts(){
 
 
         {/* GRID */}
-        <div className="grid">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
 
-          <div className="lg:col-span-2 grid sm:grid-cols-4 gap-8">
+          {posts.map(post=>(
+            <Link
+              key={post.id}
+              href={`/blog/${post.slug}`}
+              className="
+                group rounded-2xl overflow-hidden border
+                bg-white border-gray-200 shadow-sm
+                dark:bg-[#0b1220] dark:border-gray-800
+                hover:shadow-xl transition
+              "
+            >
 
-            {posts.map(post=>(
-              <Link
-                key={post.id}
-                href={`/blog/${post.slug}`}
-                className="
-                  group rounded-2xl overflow-hidden border
-                  bg-white border-gray-200 shadow-sm
-                  dark:bg-[#0b1220] dark:border-gray-800
-                  hover:shadow-xl transition
-                "
-              >
+              {/* IMAGE */}
+              <div className="overflow-hidden">
+                <img
+                  src={post.img || "/placeholder.jpg"}
+                  className="w-full h-48 object-cover group-hover:scale-105 transition duration-500"
+                />
+              </div>
 
-                {/* IMAGE */}
-                <div className="overflow-hidden">
-                  <img
-                    src={post.img}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition duration-500"
-                  />
-                </div>
+              {/* TEXT */}
+              <div className="p-5 space-y-2">
 
-                {/* TEXT */}
-                <div className="p-5 space-y-2">
+                <h3 className="font-semibold group-hover:text-blue-400 transition">
+                  {limitWords(post.title,10)}
+                </h3>
 
-                  {/* TITLE LIMIT 10 WORDS */}
-                  <h3 className="font-semibold group-hover:text-blue-400 transition">
-                    {limitWords(post.title,2)}
-                  </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {limitWords(post.desc || "",20)}
+                </p>
 
-                  {/* DESC LIMIT 20 WORDS */}
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {limitWords(post.desc || post.time || "",10)}
-                  </p>
+              </div>
 
-                </div>
-
-              </Link>
-            ))}
-
-          </div>
+            </Link>
+          ))}
 
         </div>
 

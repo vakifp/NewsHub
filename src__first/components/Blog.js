@@ -10,24 +10,27 @@ export default function BlogGrid(){
 
   const [posts,setPosts] = useState([]);
   const [activeTab,setActiveTab] = useState("latest");
+  const [loading,setLoading] = useState(true);
 
   /* LOAD POSTS */
   useEffect(()=>{
     async function load(){
-      const q=query(
-        collection(db,"posts"),
-        orderBy("created","desc")
-      );
+      try{
+        const q=query(collection(db,"posts"),orderBy("created","desc"));
+        const snap=await getDocs(q);
 
-      const snap=await getDocs(q);
-
-      setPosts(
-        snap.docs.map(doc=>({
-          id:doc.id,
-          slug:doc.data().slug || doc.id,
-          ...doc.data()
-        }))
-      );
+        setPosts(
+          snap.docs.map(doc=>({
+            id:doc.id,
+            slug:doc.data().slug || doc.id,
+            ...doc.data()
+          }))
+        );
+      }catch(err){
+        console.error(err);
+      }finally{
+        setLoading(false);
+      }
     }
     load();
   },[]);
@@ -35,8 +38,7 @@ export default function BlogGrid(){
 
 
   /* TITLE LIMIT */
-  function shortTitle(text, words=10){
-    if(!text) return "";
+  function shortTitle(text="", words=10){
     const arr=text.split(" ");
     return arr.length>words
       ? arr.slice(0,words).join(" ")+"..."
@@ -68,23 +70,55 @@ export default function BlogGrid(){
 
 
 
-  /* LOADING */
-  if(posts.length===0){
+  /* ================= LOADER ================= */
+  if(loading){
     return(
-      <div className="py-40 text-center text-gray-500">
-        Loading posts...
-      </div>
+      <section className="py-14">
+        <div className="max-w-7xl mx-auto px-4 animate-pulse">
+
+          <div className="h-6 w-48 bg-gray-300 dark:bg-gray-700 rounded mb-10"/>
+
+          <div className="grid lg:grid-cols-3 gap-8">
+
+            {/* featured skeleton */}
+            <div className="h-96 rounded-2xl bg-gray-300 dark:bg-gray-700"/>
+
+            {/* side posts skeleton */}
+            <div className="space-y-5">
+              {[1,2,3,4].map(i=>(
+                <div key={i} className="flex gap-4">
+                  <div className="w-32 h-20 bg-gray-300 dark:bg-gray-700 rounded"/>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-full"/>
+                    <div className="h-3 bg-gray-300 dark:bg-gray-700 rounded w-20"/>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* sidebar skeleton */}
+            <div className="p-6 rounded-2xl border space-y-4">
+              <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded-full"/>
+              {[1,2,3,4,5].map(i=>(
+                <div key={i} className="h-4 bg-gray-300 dark:bg-gray-700 rounded"/>
+              ))}
+            </div>
+
+          </div>
+        </div>
+      </section>
     );
   }
 
 
 
+  /* ================= UI ================= */
   return(
     <section className="
       py-14
       bg-white text-gray-900
       dark:bg-gradient-to-br dark:from-[#0f172a] dark:via-[#111827] dark:to-[#020617]
-      dark:text-white
+      dark:text-gray-100
     ">
 
       <div className="max-w-7xl mx-auto px-4">
@@ -95,7 +129,6 @@ export default function BlogGrid(){
         </h2>
 
 
-
         {/* GRID */}
         <div className="grid lg:grid-cols-3 gap-8">
 
@@ -104,16 +137,18 @@ export default function BlogGrid(){
           {featured && (
             <Link
               href={`/blog/${featured.slug}`}
-              className="group relative rounded-2xl overflow-hidden"
+              className="group relative rounded-2xl overflow-hidden block"
             >
               <img
-                src={featured.img}
-                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                src={featured.img || "/placeholder.jpg"}
+                loading="lazy"
+                alt={featured.title}
+                className="w-full h-[420px] object-cover group-hover:scale-105 transition duration-500"
               />
 
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"/>
 
-              <div className="absolute bottom-0 p-6">
+              <div className="absolute bottom-0 p-6 text-white">
                 <h3 className="font-bold text-xl group-hover:text-blue-400">
                   {shortTitle(featured.title)}
                 </h3>
@@ -136,7 +171,9 @@ export default function BlogGrid(){
                 className="flex gap-4 group"
               >
                 <img
-                  src={post.img}
+                  src={post.img || "/placeholder.jpg"}
+                  alt={post.title}
+                  loading="lazy"
                   className="w-32 h-20 rounded-lg object-cover"
                 />
 
@@ -156,14 +193,14 @@ export default function BlogGrid(){
 
 
           {/* SIDEBAR */}
-          <div className="rounded-2xl p-6 border bg-white dark:bg-[#0b1220]">
+          <div className="rounded-2xl p-6 border bg-white dark:bg-[#0b1220] dark:border-gray-800">
 
             {/* TABS */}
             <div className="flex mb-6 bg-gray-100 dark:bg-[#111827] p-1 rounded-full">
 
               <button
                 onClick={()=>setActiveTab("latest")}
-                className={`flex-1 py-2 rounded-full text-sm font-semibold ${
+                className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${
                   activeTab==="latest"
                     ? "bg-red-500 text-white"
                     : "text-gray-500"
@@ -174,7 +211,7 @@ export default function BlogGrid(){
 
               <button
                 onClick={()=>setActiveTab("popular")}
-                className={`flex-1 py-2 rounded-full text-sm font-semibold ${
+                className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${
                   activeTab==="popular"
                     ? "bg-red-500 text-white"
                     : "text-gray-500"
@@ -209,6 +246,7 @@ export default function BlogGrid(){
             <button className="
               px-10 py-3 rounded-full border
               hover:bg-gray-100 dark:hover:bg-gray-800
+              transition
             ">
               View All News
             </button>

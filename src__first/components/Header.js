@@ -5,6 +5,7 @@ import { db, auth } from "@/lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import Link from "next/link";
+import Topbar from "@/components/Topbar";
 
 export default function Header(){
 
@@ -62,7 +63,7 @@ export default function Header(){
     } border-b ${shadow?"shadow-lg":""}`}>
 
       <nav className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-
+<Topbar />
         {/* LEFT */}
         <div className="flex items-center gap-6">
 

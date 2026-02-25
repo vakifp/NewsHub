@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: {
-    default: "NewsHub",
+    default: "NewsHub dddd",
     template: "%s | NewsHub",
   },
   description: "Latest news, sports, tech and updates",

@@ -3,127 +3,160 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+  increment
+} from "firebase/firestore";
 import Header from "@/components/Header";
 import Link from "next/link";
 import Footer from "@/components/Footer";
+import DOMPurify from "dompurify";
 
-export default function Details() {
+export default function Details(){
+
   const { slug } = useParams();
 
-  const [post, setPost] = useState(null);
-  const [posts, setPosts] = useState([]);
-  const [activeTab, setActiveTab] = useState("latest");
+  const [post,setPost] = useState(null);
+  const [posts,setPosts] = useState([]);
+  const [activeTab,setActiveTab] = useState("latest");
 
-  /* ---------------- LOAD DATA ---------------- */
-  useEffect(() => {
-    if (!slug) return;
 
-    (async () => {
-      /* FETCH SINGLE POST */
-      const snap = await getDocs(
-        query(collection(db, "posts"), where("slug", "==", slug))
-      );
 
-      if (snap.empty) {
+  /* ================= LOAD DATA ================= */
+  useEffect(()=>{
+    if(!slug) return;
+
+    (async()=>{
+
+      try{
+
+        const snap = await getDocs(
+          query(collection(db,"posts"),where("slug","==",slug))
+        );
+
+        if(snap.empty){
+          setPost("notfound");
+          return;
+        }
+
+        const currentPost={
+          id:snap.docs[0].id,
+          ...snap.docs[0].data()
+        };
+
+        setPost(currentPost);
+
+        /* increment views (non blocking) */
+        updateDoc(doc(db,"posts",currentPost.id),{
+          views:increment(1)
+        });
+
+        /* related posts */
+        const relatedSnap = await getDocs(
+          query(
+            collection(db,"posts"),
+            where("category","==",currentPost.category)
+          )
+        );
+
+        setPosts(
+          relatedSnap.docs.map(d=>({
+            id:d.id,
+            slug:d.data().slug || d.id,
+            ...d.data()
+          }))
+        );
+
+      }catch(err){
+        console.error(err);
         setPost("notfound");
-        return;
       }
 
-      const currentPost = {
-        id: snap.docs[0].id,
-        ...snap.docs[0].data(),
-      };
-
-      setPost(currentPost);
-
-      /* FETCH RELATED POSTS ONLY */
-      const relatedSnap = await getDocs(
-        query(
-          collection(db, "posts"),
-          where("category", "==", currentPost.category)
-        )
-      );
-
-      setPosts(
-        relatedSnap.docs.map((d) => ({
-          id: d.id,
-          slug: d.data().slug || d.id,
-          ...d.data(),
-        }))
-      );
     })();
-  }, [slug]);
 
-  /* ---------------- PAGE TITLE ---------------- */
-  useEffect(() => {
-    if (post && post !== "notfound") {
-      document.title = post.title + " | News";
-    }
-  }, [post]);
+  },[slug]);
 
-  /* ---------------- SIDEBAR DATA ---------------- */
+
+
+  /* ================= SIDEBAR LIST ================= */
 
   const latestPosts = useMemo(
-    () => posts.slice(0, 5),
+    ()=>posts.slice(0,5),
     [posts]
   );
 
   const popularPosts = useMemo(
-    () =>
-      [...posts]
-        .sort((a, b) => (b.views || 0) - (a.views || 0))
-        .slice(0, 5),
+    ()=>[...posts]
+      .sort((a,b)=>(b.views||0)-(a.views||0))
+      .slice(0,5),
     [posts]
   );
 
   const sidebarList =
-    activeTab === "latest" ? latestPosts : popularPosts;
+    activeTab==="latest"
+      ? latestPosts
+      : popularPosts;
 
-  /* ---------------- LABELS ---------------- */
 
-  const labels =
-    typeof post?.labels === "string"
-      ? post.labels.split(",").map((l) => l.trim())
-      : Array.isArray(post?.labels)
-      ? post.labels
-      : [];
 
-  /* ---------------- READ TIME ---------------- */
+  /* ================= READ TIME ================= */
 
-  const readTime = Math.max(
+  const readTime=Math.max(
     1,
-    Math.ceil((post?.desc?.split(" ").length || 0) / 200)
+    Math.ceil((post?.desc?.replace(/<[^>]+>/g,"").split(" ").length||0)/200)
   );
 
-  /* ---------------- RELATED POSTS ---------------- */
 
-  const related = useMemo(() => {
-    if (!post?.category) return [];
 
+  /* ================= RELATED ================= */
+
+  const related = useMemo(()=>{
+    if(!post?.category) return [];
     return posts
-      .filter((p) => p.slug !== post.slug)
-      .slice(0, 3);
-  }, [posts, post]);
+      .filter(p=>p.slug!==post.slug)
+      .slice(0,3);
+  },[posts,post]);
 
-  /* ---------------- LOADER ---------------- */
 
-  if (post === null) {
-    return (
+
+  /* ================= LOADER ================= */
+
+  if(post===null){
+    return(
       <section className="py-14 animate-pulse">
         <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-3 gap-10">
 
+          {/* article skeleton */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="h-4 w-48 bg-gray-300 dark:bg-gray-700 rounded" />
-            <div className="h-105 bg-gray-300 dark:bg-gray-700 rounded-2xl" />
-            <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded" />
-            <div className="h-12 bg-gray-300 dark:bg-gray-700 rounded" />
+
+            <div className="h-[400px] bg-gray-300 dark:bg-gray-700 rounded-2xl"/>
+
+            <div className="h-10 w-3/4 bg-gray-300 dark:bg-gray-700 rounded"/>
+
+            <div className="flex gap-4">
+              <div className="h-4 w-24 bg-gray-300 dark:bg-gray-700 rounded"/>
+              <div className="h-4 w-20 bg-gray-300 dark:bg-gray-700 rounded"/>
+              <div className="h-4 w-16 bg-gray-300 dark:bg-gray-700 rounded"/>
+            </div>
+
+            <div className="space-y-3">
+              {[1,2,3,4,5].map(i=>(
+                <div key={i} className="h-4 bg-gray-300 dark:bg-gray-700 rounded"/>
+              ))}
+            </div>
+
           </div>
 
+          {/* sidebar skeleton */}
           <div className="space-y-4 border p-6 rounded-2xl">
-            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded-full" />
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-4 bg-gray-300 dark:bg-gray-700 rounded" />
+            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded-full"/>
+            {[1,2,3,4,5].map(i=>(
+              <div key={i} className="h-4 bg-gray-300 dark:bg-gray-700 rounded"/>
             ))}
           </div>
 
@@ -132,10 +165,12 @@ export default function Details() {
     );
   }
 
-  /* ---------------- NOT FOUND ---------------- */
 
-  if (post === "notfound") {
-    return (
+
+  /* ================= NOT FOUND ================= */
+
+  if(post==="notfound"){
+    return(
       <div className="py-40 text-center">
         <h2 className="text-2xl font-bold mb-4">Article not found</h2>
         <Link href="/" className="text-blue-600 underline">
@@ -145,11 +180,13 @@ export default function Details() {
     );
   }
 
+
+
   /* ================= UI ================= */
 
-  return (
+  return(
     <>
-      <Header />
+      <Header/>
 
       <section className="min-h-screen py-14 px-4 bg-white text-gray-900 dark:bg-[#020617] dark:text-gray-100">
 
@@ -158,80 +195,44 @@ export default function Details() {
           {/* ARTICLE */}
           <article className="lg:col-span-2">
 
-            {/* breadcrumb */}
-            <div className="text-sm text-gray-500 mb-6">
-              <Link href="/">Home</Link> ›
-              <Link href={`/category/${post.category}`} className="mx-2 capitalize">
-                {post.category}
-              </Link>
-              › {post.title}
-            </div>
-
-            {/* image */}
+            {/* IMAGE */}
             <div className="rounded-2xl overflow-hidden mb-8 shadow-lg">
               <img
                 src={post.img || "/placeholder.jpg"}
-                alt={post.title || "Article image"}
-                className="w-full h-105 object-cover"
+                alt={post.title}
+                className="w-full h-[400px] object-cover"
               />
             </div>
 
-            {/* category */}
-            <span className="px-3 py-1 text-xs rounded-full bg-red-500 text-white">
-              {post.category}
-            </span>
-
-            {/* title */}
-            <h1 className="text-3xl md:text-5xl font-bold mt-4 mb-6">
+            {/* TITLE */}
+            <h1 className="text-3xl md:text-5xl font-bold mb-6">
               {post.title}
             </h1>
 
-            {/* meta */}
-            <div className="flex flex-wrap gap-4 text-sm mb-8 text-gray-500">
+            {/* META */}
+            <div className="text-sm mb-6 text-gray-500 flex gap-4 flex-wrap">
               <span>By {post.author || "Admin"}</span>
-              <span>•</span>
-              <span>{post.time || "recent"}</span>
-              <span>•</span>
               <span>{readTime} min read</span>
+              <span>{post.views || 0} views</span>
             </div>
 
-            {/* labels */}
-            {labels.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-10">
-                {labels.map((l) => (
-                  <Link
-                    key={l}
-                    href={`/label/${l}`}
-                    className="px-3 py-1 text-xs rounded-full bg-gray-200 hover:bg-red-500 hover:text-white transition"
-                  >
-                    #{l}
-                  </Link>
-                ))}
-              </div>
-            )}
+            {/* CONTENT SAFE HTML */}
+            <div
+              className="prose prose-lg max-w-none dark:prose-invert"
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(post.desc)
+              }}
+            />
 
-            {/* content */}
-            <div className="prose prose-lg max-w-none dark:prose-invert">
-              {post.desc}
-            </div>
 
-            {/* share */}
-            <div className="mt-12 border-t pt-6">
-              <p className="font-semibold mb-3">Share Article</p>
-              <div className="flex gap-3">
-                <button className="px-4 py-2 bg-blue-600 text-white rounded">Facebook</button>
-                <button className="px-4 py-2 bg-sky-500 text-white rounded">Twitter</button>
-                <button className="px-4 py-2 bg-green-500 text-white rounded">WhatsApp</button>
-              </div>
-            </div>
 
-            {/* related */}
-            {related.length > 0 && (
+            {/* RELATED */}
+            {related.length>0 && (
               <div className="mt-16">
                 <h3 className="text-xl font-bold mb-6">Related Articles</h3>
 
                 <div className="grid md:grid-cols-3 gap-6">
-                  {related.map((p) => (
+                  {related.map(p=>(
                     <Link
                       key={p.id}
                       href={`/blog/${p.slug}`}
@@ -246,17 +247,19 @@ export default function Details() {
 
           </article>
 
+
+
           {/* SIDEBAR */}
           <aside>
-
             <div className="rounded-2xl p-6 border sticky top-24">
 
+              {/* tabs */}
               <div className="flex mb-6 bg-gray-100 dark:bg-[#111827] p-1 rounded-full">
 
                 <button
-                  onClick={() => setActiveTab("latest")}
+                  onClick={()=>setActiveTab("latest")}
                   className={`flex-1 py-2 rounded-full text-sm ${
-                    activeTab === "latest"
+                    activeTab==="latest"
                       ? "bg-red-500 text-white"
                       : "text-gray-500"
                   }`}
@@ -265,9 +268,9 @@ export default function Details() {
                 </button>
 
                 <button
-                  onClick={() => setActiveTab("popular")}
+                  onClick={()=>setActiveTab("popular")}
                   className={`flex-1 py-2 rounded-full text-sm ${
-                    activeTab === "popular"
+                    activeTab==="popular"
                       ? "bg-red-500 text-white"
                       : "text-gray-500"
                   }`}
@@ -277,22 +280,26 @@ export default function Details() {
 
               </div>
 
+
+
+              {/* list */}
               <div className="space-y-5">
-                {sidebarList.map((p, i) => (
+                {sidebarList.map((p,i)=>(
                   <Link key={p.id} href={`/blog/${p.slug}`} className="flex gap-4">
-                    <span className="text-yellow-400 font-bold">{i + 1}</span>
+                    <span className="text-yellow-500 font-bold">{i+1}</span>
                     <p className="text-sm">{p.title}</p>
                   </Link>
                 ))}
               </div>
 
             </div>
-
           </aside>
 
         </div>
+
       </section>
-      <Footer />
+
+      <Footer/>
     </>
   );
 }

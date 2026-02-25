@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import {
@@ -35,16 +36,15 @@ export default function Dashboard(){
   }
 
   /* ---------- LOAD POSTS ---------- */
-useEffect(()=>{
   async function loadPosts(){
-    const snap = await getDocs(collection(db,"posts"));
+    const q = query(collection(db,"posts"),orderBy("created","desc"));
+    const snap = await getDocs(q);
     setPosts(snap.docs.map(d=>({ id:d.id, ...d.data() })));
   }
 
-  loadPosts();
-},[]);
-
-  useEffect(()=>{loadPosts()},[]);
+  useEffect(()=>{
+    loadPosts();
+  },[]);
 
   /* ---------- FORM CHANGE ---------- */
   function handleChange(e){
@@ -81,12 +81,34 @@ useEffect(()=>{
     loadPosts();
   }
 
-  /* ---------- DELETE ---------- */
+  /* ---------- DELETE ONE ---------- */
   async function handleDelete(id){
-    if(confirm("Delete post?")){
+    if(confirm("Delete this post?")){
       await deleteDoc(doc(db,"posts",id));
       loadPosts();
     }
+  }
+
+  /* ---------- DELETE ALL ---------- */
+  async function deleteAllPosts(){
+
+    if(!confirm("Delete ALL posts? This cannot be undone ❗")) return;
+
+    const snap = await getDocs(collection(db,"posts"));
+
+    if(snap.empty){
+      alert("No posts to delete");
+      return;
+    }
+
+    const promises = snap.docs.map(docSnap =>
+      deleteDoc(doc(db,"posts",docSnap.id))
+    );
+
+    await Promise.all(promises);
+
+    alert("All posts deleted ✅");
+    loadPosts();
   }
 
   /* ---------- EDIT ---------- */
@@ -96,10 +118,18 @@ useEffect(()=>{
     window.scrollTo({top:0,behavior:"smooth"});
   }
 
-
-
   return(
     <div className="max-w-6xl mx-auto p-8 space-y-10">
+
+      {/* ACTION BUTTONS */}
+      <div className="flex gap-4">
+        <button
+          onClick={deleteAllPosts}
+          className="bg-red-600 text-white px-6 py-2 rounded"
+        >
+          Delete All Posts
+        </button>
+      </div>
 
       {/* ================= FORM ================= */}
       <div className="bg-white border rounded-xl shadow p-6">
@@ -110,23 +140,45 @@ useEffect(()=>{
 
         <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-4">
 
-          <input name="title" value={form.title} onChange={handleChange}
-            placeholder="Title" className="border p-2 rounded"/>
+          <input
+            name="title"
+            value={form.title}
+            onChange={handleChange}
+            placeholder="Title"
+            className="border p-2 rounded"
+          />
 
-          <input name="author" value={form.author} onChange={handleChange}
-            placeholder="Author" className="border p-2 rounded"/>
+          <input
+            name="author"
+            value={form.author}
+            onChange={handleChange}
+            placeholder="Author"
+            className="border p-2 rounded"
+          />
 
-          <input name="labels" value={form.labels} onChange={handleChange}
+          <input
+            name="labels"
+            value={form.labels}
+            onChange={handleChange}
             placeholder="Labels (comma separated)"
-            className="border p-2 rounded md:col-span-2"/>
+            className="border p-2 rounded md:col-span-2"
+          />
 
-          <input name="img" value={form.img} onChange={handleChange}
+          <input
+            name="img"
+            value={form.img}
+            onChange={handleChange}
             placeholder="Image URL"
-            className="border p-2 rounded md:col-span-2"/>
+            className="border p-2 rounded md:col-span-2"
+          />
 
-          <textarea name="desc" value={form.desc} onChange={handleChange}
+          <textarea
+            name="desc"
+            value={form.desc}
+            onChange={handleChange}
             placeholder="Description"
-            className="border p-2 rounded md:col-span-2 h-32"/>
+            className="border p-2 rounded md:col-span-2 h-32"
+          />
 
           <button className="bg-black text-white py-2 rounded md:col-span-2">
             {editingId ? "Update Post" : "Publish Post"}
@@ -134,8 +186,6 @@ useEffect(()=>{
 
         </form>
       </div>
-
-
 
       {/* ================= TABLE ================= */}
       <div className="bg-white border rounded-xl shadow overflow-x-auto">
@@ -153,7 +203,6 @@ useEffect(()=>{
           </thead>
 
           <tbody>
-
             {posts.map(post=>(
               <tr key={post.id} className="border-t">
 
@@ -166,13 +215,15 @@ useEffect(()=>{
 
                   <button
                     onClick={()=>handleEdit(post)}
-                    className="px-3 py-1 bg-blue-600 text-white rounded">
+                    className="px-3 py-1 bg-blue-600 text-white rounded"
+                  >
                     Edit
                   </button>
 
                   <button
                     onClick={()=>handleDelete(post.id)}
-                    className="px-3 py-1 bg-red-600 text-white rounded">
+                    className="px-3 py-1 bg-red-600 text-white rounded"
+                  >
                     Delete
                   </button>
 
@@ -180,7 +231,6 @@ useEffect(()=>{
 
               </tr>
             ))}
-
           </tbody>
 
         </table>
