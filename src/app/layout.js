@@ -13,19 +13,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
+  metadataBase: new URL("https://www.krymoz.com"),
   title: {
-    default: "NewsHub dddd",
-    template: "%s | NewsHub",
+    default: "Krymoz – News, Windows Tips & Error Fixes",
+    template: "%s | Krymoz",
   },
-  description: "Latest news, sports, tech and updates",
+  description:
+    "Latest  news, Windows 10/11 tips, troubleshooting guides, and step-by-step error fixes.",
 };
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-                <StoreProvider>{children}</StoreProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <StoreProvider>
+          {children}
+        </StoreProvider>
       </body>
     </html>
   );

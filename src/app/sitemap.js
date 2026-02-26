@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap() {
 
-  const base = "https://yourdomain.com";
+  const base = "https://krymoz.com";
 
   /* POSTS */
   const postSnap = await getDocs(collection(db,"posts"));
