@@ -108,7 +108,7 @@ export default function Header(){
               <img src={settings.logo} className="h-8"/>
             ):(
               <h1 className="font-bold text-xl text-red-500">
-                {settings?.siteName || "NewsHub"}
+                {settings?.siteName || "krymoz"}
               </h1>
             )}
 
