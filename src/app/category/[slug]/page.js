@@ -3,25 +3,20 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { db } from "@/lib/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import BlogCard from "@/components/BlogCard";
+import { motion } from "framer-motion";
+import { Sparkles, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
 export default function CategoryPage() {
   const { slug } = useParams();
-
   const [posts, setPosts] = useState([]);
   const [activeTab, setActiveTab] = useState("latest");
 
-  /* WORD LIMIT */
-  function limitWords(text = "", count) {
-    const arr = text.split(" ");
-    return arr.length > count
-      ? arr.slice(0, count).join(" ") + "..."
-      : text;
-  }
-
-  /* SLUGIFY */
+  /* SLUGIFY HELPER */
   function slugify(text = "") {
     return text.toLowerCase().trim().replace(/\s+/g, "-");
   }
@@ -29,153 +24,107 @@ export default function CategoryPage() {
   /* LOAD POSTS */
   useEffect(() => {
     if (!slug) return;
-
     (async () => {
-      const snap = await getDocs(collection(db, "posts"));
-
+      const q = query(collection(db, "posts"), orderBy("created", "desc"));
+      const snap = await getDocs(q);
       const all = snap.docs.map(d => ({
         id: d.id,
         slug: d.data().slug || d.id,
         ...d.data()
       }));
-
       const normalizedSlug = slug.toLowerCase();
-
-      setPosts(
-        all.filter(p => slugify(p.category) === normalizedSlug)
-      );
+      setPosts(all.filter(p => slugify(p.category) === normalizedSlug));
     })();
   }, [slug]);
 
-  /* SIDEBAR DATA (MEMOIZED) */
-  const latest = useMemo(
-    () =>
-      [...posts]
-        .sort((a, b) => (b.created || 0) - (a.created || 0))
-        .slice(0, 5),
-    [posts]
-  );
-
-  const popular = useMemo(
-    () =>
-      [...posts]
-        .sort((a, b) => (b.views || 0) - (a.views || 0))
-        .slice(0, 5),
-    [posts]
-  );
-
-  const list = activeTab === "latest" ? latest : popular;
+  /* SIDEBAR DATA */
+  const popular = useMemo(() => [...posts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5), [posts]);
+  const list = activeTab === "latest" ? posts.slice(0, 5) : popular;
 
   return (
-    <>
+    <div className="bg-background min-h-screen">
       <Header />
 
-      <section className="min-h-screen py-12 px-4 bg-white text-gray-900 dark:bg-linear-to-br dark:from-[#0f172a] dark:via-[#111827] dark:to-[#020617] dark:text-white">
-
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-3 gap-10">
-
-          {/* LEFT POSTS */}
-          <div className="lg:col-span-2">
-
-            <h1 className="text-4xl font-bold mb-10 capitalize">
-              {slug}
-            </h1>
+      <main className="max-w-7xl mx-auto px-6 py-16">
+        <div className="grid lg:grid-cols-12 gap-16">
+          
+          {/* LEFT: POSTS FEED */}
+          <div className="lg:col-span-8">
+            <header className="mb-12 space-y-4">
+              <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-[0.2em]">
+                <Sparkles size={14} className="fill-primary" /> Curated Archive
+              </div>
+              <h1 className="text-4xl md:text-6xl font-black capitalize tracking-tight">
+                {slug.replace(/-/g, " ")}
+              </h1>
+              <p className="text-muted-foreground text-lg max-w-2xl font-medium leading-relaxed">
+                Deep dive into our expert selection of articles and insights categorized under {slug.replace(/-/g, " ")}.
+              </p>
+            </header>
 
             {posts.length === 0 ? (
-              <p className="text-gray-500">No posts found.</p>
+              <div className="py-20 text-center border-2 border-dashed border-border rounded-[2.5rem]">
+                <p className="text-muted-foreground font-bold italic">No articles yet in this category.</p>
+              </div>
             ) : (
               <div className="grid md:grid-cols-2 gap-8">
-
-                {posts.map(p => (
-                  <Link key={p.id} href={`/blog/${p.slug}`}>
-
-                    <div className="group border rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 cursor-pointer bg-white dark:bg-[#0b1220]">
-
-                      {p.img && (
-                        <img
-                          src={p.img}
-                          alt={p.title || "post image"}
-                          className="h-48 w-full object-cover group-hover:scale-105 transition duration-500"
-                        />
-                      )}
-
-                      <div className="p-5">
-                        <h2 className="font-bold text-lg group-hover:text-blue-500 transition">
-                          {limitWords(p.title, 10)}
-                        </h2>
-
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                          {p.author || "Admin"} • {p.time || "recent"}
-                        </p>
-                      </div>
-
-                    </div>
-
-                  </Link>
+                {posts.map((p, i) => (
+                  <motion.div
+                    key={p.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                  >
+                    <BlogCard post={p} />
+                  </motion.div>
                 ))}
-
               </div>
             )}
-
           </div>
 
-          {/* SIDEBAR */}
-          <aside>
-
-            <div className="rounded-2xl p-6 border sticky top-24 bg-white border-gray-200 dark:bg-[#0b1220] dark:border-gray-800">
-
-              {/* TABS */}
-              <div className="flex mb-6 bg-gray-100 dark:bg-[#111827] p-1 rounded-full">
-
-                <button
-                  onClick={() => setActiveTab("latest")}
-                  className={`flex-1 py-2 rounded-full text-sm font-semibold ${
-                    activeTab === "latest"
-                      ? "bg-red-500 text-white"
-                      : "text-gray-500 dark:text-gray-400"
-                  }`}
-                >
-                  Latest
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("popular")}
-                  className={`flex-1 py-2 rounded-full text-sm font-semibold ${
-                    activeTab === "popular"
-                      ? "bg-red-500 text-white"
-                      : "text-gray-500 dark:text-gray-400"
-                  }`}
-                >
-                  Popular
-                </button>
-
+          {/* RIGHT: SIDEBAR */}
+          <aside className="lg:col-span-4">
+            <div className="sticky top-32 glass-card rounded-[2.5rem] p-8 border border-border/50">
+              <h4 className="font-black text-xs uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
+                <TrendingUp size={16} /> Trends in {slug}
+              </h4>
+              
+              <div className="flex gap-4 mb-8 bg-muted/50 p-1 rounded-full">
+                {["latest", "popular"].map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`flex-1 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                      activeTab === tab ? "bg-primary text-white shadow-lg" : "text-muted-foreground"
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                ))}
               </div>
 
-              {/* LIST */}
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {list.map((p, i) => (
-                  <Link key={p.id} href={`/blog/${p.slug}`}>
-                    <div className="flex gap-4 cursor-pointer group">
-
-                      <span className="text-yellow-400 font-bold text-lg">
-                        {i + 1}
-                      </span>
-
-                      <p className="text-sm group-hover:text-blue-500 transition">
-                        {limitWords(p.title, 10)}
+                  <Link key={p.id} href={`/blog/${p.slug}`} className="flex gap-4 group">
+                    <span className="text-xl font-black text-primary/10 group-hover:text-primary/30 transition-colors pt-1">
+                      {(i + 1).toString().padStart(2, '0')}
+                    </span>
+                    <div className="space-y-1">
+                      <p className="font-bold text-xs leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                        {p.title}
                       </p>
-
+                      <span className="text-[10px] font-medium text-muted-foreground uppercase">{p.category}</span>
                     </div>
                   </Link>
                 ))}
               </div>
-
             </div>
-
           </aside>
 
         </div>
-      </section>
-    </>
+      </main>
+
+      <Footer />
+    </div>
   );
 }

@@ -1,5 +1,21 @@
 "use client";
+
+import { 
+  Edit, 
+  Trash2, 
+  Eye, 
+  MoreVertical, 
+  Search, 
+  Filter, 
+  ChevronLeft, 
+  ChevronRight,
+  TrendingUp,
+  Clock,
+  CheckCircle2,
+  FileEdit
+} from "lucide-react";
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function PostsTable({
   posts,
@@ -9,232 +25,151 @@ export default function PostsTable({
   setPage,
   handleEdit,
   handleDelete
-}){
-
-  const [selected,setSelected] = useState([]);
-
-  const perPage = 6;
-
-  const filtered = posts.filter(p =>
-    p.title?.toLowerCase().includes(search.toLowerCase())
+}) {
+  const [dropdownId, setDropdownId] = useState(null);
+  const perPage = 10;
+  
+  const filtered = posts.filter(p => 
+    p.title.toLowerCase().includes(search.toLowerCase()) || 
+    p.category.toLowerCase().includes(search.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filtered.length/perPage);
-  const visible = filtered.slice((page-1)*perPage,page*perPage);
+  const totalPages = Math.ceil(filtered.length / perPage);
+  const visible = filtered.slice((page - 1) * perPage, page * perPage);
 
-
-
-  /* SELECT ONE */
-  function toggleSelect(id){
-    setSelected(prev =>
-      prev.includes(id)
-        ? prev.filter(i=>i!==id)
-        : [...prev,id]
-    );
-  }
-
-
-
-  /* SELECT ALL */
-  function toggleSelectAll(){
-    if(selected.length===visible.length){
-      setSelected([]);
-    }else{
-      setSelected(visible.map(p=>p.id));
-    }
-  }
-
-
-
-  /* DELETE SELECTED */
-  async function deleteSelected(){
-    if(selected.length===0) return;
-
-    if(!confirm(`Delete ${selected.length} posts?`)) return;
-
-    for(const id of selected){
-      await handleDelete(id);
-    }
-
-    setSelected([]);
-  }
-
-
-
-  return(
-    <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-
-      {/* HEADER */}
-      <div className="p-6 flex flex-wrap gap-4 justify-between items-center bg-gradient-to-r from-gray-50 to-gray-100">
-
-        <h2 className="text-lg font-semibold text-gray-700">
-          All Posts ({posts.length})
-        </h2>
-
-        <div className="flex gap-3">
-
-          <input
-            placeholder="Search posts..."
-            onChange={e=>setSearch(e.target.value)}
-            className="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-          />
-
-          {/* DELETE SELECTED */}
-          <button
-            disabled={selected.length===0}
-            onClick={deleteSelected}
-            className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm disabled:opacity-40 hover:bg-red-600 transition"
+  return (
+    <div className="bg-white dark:bg-[#0b1220] rounded-[2.5rem] border dark:border-gray-800 shadow-sm overflow-hidden flex flex-col">
+      <div className="p-8 border-b dark:border-gray-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-accent/20">
+        <div>
+          <h2 className="text-xl font-black tracking-tight">Catalog Repository</h2>
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">Total Articles: {filtered.length}</p>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <button 
+            disabled={page === 1}
+            onClick={() => setPage(p => p - 1)}
+            className="p-2.5 rounded-xl border dark:border-gray-800 hover:bg-accent disabled:opacity-30 disabled:hover:bg-transparent transition-all"
           >
-            Delete Selected ({selected.length})
+            <ChevronLeft size={18} />
           </button>
-
+          <span className="text-sm font-bold w-20 text-center">
+            {page} / {totalPages || 1}
+          </span>
+          <button 
+            disabled={page === totalPages || totalPages === 0}
+            onClick={() => setPage(p => p + 1)}
+            className="p-2.5 rounded-xl border dark:border-gray-800 hover:bg-accent disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+          >
+            <ChevronRight size={18} />
+          </button>
         </div>
       </div>
 
-
-
-      {/* TABLE */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-
-          {/* HEAD */}
-          <thead className="bg-gray-50 text-gray-600">
-            <tr>
-
-              <th className="p-4">
-                <input
-                  type="checkbox"
-                  checked={selected.length===visible.length && visible.length>0}
-                  onChange={toggleSelectAll}
-                />
-              </th>
-
-              <th className="p-4 text-left">Title</th>
-              <th className="p-4 text-left">Category</th>
-              <th className="p-4 text-left">Tags</th>
-              <th className="p-4 text-left">Status</th>
-              <th className="p-4 text-center">Actions</th>
+        <table className="w-full text-left border-collapse min-w-[800px]">
+          <thead>
+            <tr className="border-b dark:border-gray-800 bg-accent/10">
+              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Article & Metadata</th>
+              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Category</th>
+              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Reach</th>
+              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">Status</th>
+              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-right px-10">Actions</th>
             </tr>
           </thead>
-
-
-
-          {/* BODY */}
-          <tbody>
-            {visible.length===0 ? (
+          <tbody className="divide-y dark:divide-gray-800">
+            {visible.length === 0 ? (
               <tr>
-                <td colSpan="6" className="p-12 text-center text-gray-400">
-                  No posts found
+                <td colSpan={5} className="p-20 text-center text-muted-foreground font-bold italic">
+                  No articles found matching your criteria.
                 </td>
               </tr>
-            ):(
-              visible.map(post=>(
-                <tr key={post.id} className="border-t hover:bg-gray-50">
-
-                  {/* CHECKBOX */}
-                  <td className="p-4 text-center">
-                    <input
-                      type="checkbox"
-                      checked={selected.includes(post.id)}
-                      onChange={()=>toggleSelect(post.id)}
-                    />
-                  </td>
-
-                  {/* TITLE */}
-                  <td className="p-4 font-medium text-gray-800">
-                    {post.title}
-                  </td>
-
-                  {/* CATEGORY */}
-                  <td className="p-4 text-gray-600">
-                    {post.category || "-"}
-                  </td>
-
-                  {/* TAGS */}
-                  <td className="p-4">
-                    <div className="flex flex-wrap gap-2">
-                      {post.tags?.map(tag=>(
-                        <span key={tag}
-                          className="px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                          {tag}
-                        </span>
-                      ))}
+            ) : (
+              visible.map((post) => (
+                <tr key={post.id} className="hover:bg-accent/30 transition-all group">
+                  <td className="p-6">
+                    <div className="flex items-center gap-4">
+                      {post.img && (
+                        <div className="w-12 h-12 rounded-xl overflow-hidden border dark:border-gray-800 flex-shrink-0">
+                          <img src={post.img} className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      <div className="space-y-1 min-w-0">
+                        <p className="font-bold text-sm tracking-tight truncate max-w-xs group-hover:text-primary transition-colors">{post.title}</p>
+                        <div className="flex items-center gap-3 text-[10px] font-medium text-muted-foreground">
+                          <span className="flex items-center gap-1"><Clock size={12} /> {post.created ? new Date(post.created).toLocaleDateString() : 'N/A'}</span>
+                          <span className="text-secondary">•</span>
+                          <span className="truncate">By {post.author || "Admin"}</span>
+                        </div>
+                      </div>
                     </div>
                   </td>
-
-                  {/* STATUS */}
-                  <td className="p-4">
-                    <span className={`px-3 py-1 rounded-full text-xs ${
-                      post.status==="Draft"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-green-100 text-green-700"
-                    }`}>
+                  <td className="p-6">
+                    <span className="px-3 py-1.5 rounded-full bg-accent text-[10px] font-black uppercase tracking-widest border dark:border-gray-700">
+                      {post.category}
+                    </span>
+                  </td>
+                  <td className="p-6">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp size={16} className="text-emerald-500" />
+                      <span className="text-sm font-bold">{post.views || 0}</span>
+                      <span className="text-[10px] text-muted-foreground font-medium">Views</span>
+                    </div>
+                  </td>
+                  <td className="p-6 text-center">
+                    <span className={`
+                      inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest
+                      ${post.status === "Published" 
+                        ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" 
+                        : "bg-amber-500/10 text-amber-600 border border-amber-500/20"}
+                    `}>
+                      {post.status === "Published" ? <CheckCircle2 size={12} /> : <FileEdit size={12} />}
                       {post.status}
                     </span>
                   </td>
-
-                  {/* ACTIONS */}
-                  <td className="p-4 flex gap-2 justify-center">
-
-                    <button
-                      onClick={()=>handleEdit(post)}
-                      className="px-3 py-1 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700">
-                      Edit
-                    </button>
-
-                    <button
-                      onClick={()=>handleDelete(post.id)}
-                      className="px-3 py-1 text-xs rounded-lg bg-red-500 text-white hover:bg-red-600">
-                      Delete
-                    </button>
-
+                  <td className="p-6 text-right px-10">
+                    <div className="flex items-center justify-end gap-2">
+                      <button 
+                        onClick={() => handleEdit(post)}
+                        className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-900/10 text-indigo-600 hover:bg-indigo-100 transition-all"
+                        title="Edit Article"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(post.id)}
+                        className="p-2.5 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-all shadow-sm"
+                        title="Delete Article"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </td>
-
                 </tr>
               ))
             )}
           </tbody>
-
         </table>
       </div>
 
-
-
-      {/* PAGINATION */}
-      {totalPages>1 && (
-        <div className="p-6 flex justify-center gap-2 bg-gray-50">
-
-          <button
-            disabled={page===1}
-            onClick={()=>setPage(p=>p-1)}
-            className="px-4 py-1 rounded-lg border disabled:opacity-40"
-          >
-            Prev
-          </button>
-
-          {[...Array(totalPages)].map((_,i)=>(
+      <div className="p-8 border-t dark:border-gray-800 bg-accent/10 flex justify-between items-center text-sm font-medium text-muted-foreground">
+        <p>Showing {visible.length} of {filtered.length} entries</p>
+        <div className="flex gap-1">
+          {[...Array(totalPages)].map((_, i) => (
             <button
               key={i}
-              onClick={()=>setPage(i+1)}
-              className={`px-3 py-1 rounded-lg ${
-                page===i+1 ? "bg-blue-600 text-white" : "border"
+              onClick={() => setPage(i + 1)}
+              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                page === i + 1 
+                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
+                  : "hover:bg-accent"
               }`}
             >
-              {i+1}
+              {i + 1}
             </button>
           ))}
-
-          <button
-            disabled={page===totalPages}
-            onClick={()=>setPage(p=>p+1)}
-            className="px-4 py-1 rounded-lg border disabled:opacity-40"
-          >
-            Next
-          </button>
-
         </div>
-      )}
-
+      </div>
     </div>
   );
 }

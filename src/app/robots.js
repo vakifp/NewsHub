@@ -3,7 +3,8 @@ export default function robots() {
     rules: {
       userAgent: "*",
       allow: "/",
+      disallow: ["/admin/", "/dashboard/"],
     },
-    sitemap: "https://krymoz.com/sitemap.xml",
+    sitemap: "https://www.krymoz.com/sitemap.xml",
   };
 }

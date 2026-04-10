@@ -1,26 +1,124 @@
 @import "tailwindcss";
 
-/* Smooth UI */
-*{
-  transition: background-color .25s, color .25s, border-color .25s;
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius: 0.75rem;
 }
 
-/* Default light borders */
-:root{
-  --border-light: #e5e7eb; /* light gray */
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0.013 190);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0.013 190);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0.013 190);
+  --primary: oklch(0.446 0.222 263.84); /* Premium Indigo */
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0.007 158);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0.007 158);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.446 0.222 263.84);
 }
 
-/* Apply to cards, tables, inputs */
-.border,
-.card,
-table,
-input,
-textarea,
-select{
-  border-color: var(--border-light) !important;
+.dark {
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0.035 264.695);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0.035 264.695);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.588 0.158 241.966);
+  --primary-foreground: oklch(0.129 0.042 264.695);
+  --secondary: oklch(0.269 0.041 260.037);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0.041 260.037);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0.041 260.037);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.269 0.041 260.037);
+  --input: oklch(0.269 0.041 260.037);
+  --ring: oklch(0.439 0.124 242.248);
 }
 
-/* Dark mode borders */
-.dark{
-  --border-light:#1f2937;
+@layer base {
+  * {
+    @apply border-border;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  }
+  .prose h1 { @apply text-4xl md:text-5xl font-black tracking-tighter mb-8 text-foreground; }
+  .prose h2 { @apply text-3xl md:text-4xl font-black tracking-tight mt-12 mb-6 text-foreground; }
+  .prose h3 { @apply text-2xl md:text-3xl font-black tracking-tight mt-10 mb-4 text-foreground opacity-90; }
+  .prose h4 { @apply text-xl md:text-2xl font-bold tracking-tight mt-8 mb-4 text-foreground/80; }
+  .prose h5 { @apply text-lg font-bold uppercase tracking-widest mt-6 mb-3 text-primary; }
+  .prose h6 { @apply text-base font-black uppercase tracking-widest mt-4 mb-2 text-muted-foreground opacity-60; }
+  .prose p { @apply text-lg leading-[1.8] text-muted-foreground mb-6; }
+  .prose blockquote { @apply border-l-4 border-primary bg-primary/5 p-8 rounded-r-3xl italic text-xl font-medium; }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Professional Form Controls */
+@layer components {
+  .admin-input {
+    @apply w-full bg-background border border-border px-4 py-2.5 rounded-xl text-sm 
+           focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all;
+  }
+  
+  .admin-button-primary {
+    @apply bg-primary text-primary-foreground px-6 py-2.5 rounded-xl text-sm font-bold 
+           shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all;
+  }
+  
+  .admin-button-secondary {
+    @apply bg-background border border-border px-6 py-2.5 rounded-xl text-sm font-bold 
+           hover:bg-accent transition-all active:scale-95;
+  }
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  @apply bg-background/70 backdrop-blur-md border border-border/20;
+}
+
+.glass-card {
+  @apply bg-background/50 backdrop-blur-sm border border-border/20 shadow-xl;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-muted;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-all;
 }

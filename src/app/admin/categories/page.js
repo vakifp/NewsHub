@@ -1,32 +1,28 @@
 "use client";
 
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { collection,getDocs } from "firebase/firestore";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import CategoryManager from "./CategoryForm";
+import { motion } from "framer-motion";
 
+export default function CategoriesPage() {
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    // We just need to trigger the initial load or ensure subcomponent handles it
+    setLoading(false);
+  }, []);
 
-import CategoryForm from "./CategoryForm";
+  if (loading) return <div className="p-20 text-center animate-pulse">Synchronizing taxonomy...</div>;
 
-export default function Page(){
-
-  const [cats,setCats]=useState([]);
-
-  useEffect(()=>{load()},[]);
-
-  async function load(){
-    const snap=await getDocs(collection(db,"categories"));
-    setCats(snap.docs.map(d=>({id:d.id,...d.data()})));
-  }
-
-  return(
-    <div className="space-y-8">
-
-      <h1 className="text-2xl font-bold">Categories</h1>
-
-      <CategoryForm reload={load}/>
-
-
-    </div>
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-12"
+    >
+      <CategoryManager />
+    </motion.div>
   );
 }
