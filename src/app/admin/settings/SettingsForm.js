@@ -16,7 +16,9 @@ import {
   CheckCircle2, 
   LayoutDashboard,
   Copyright,
-  Hexagon
+  Hexagon,
+  Hash,
+  User
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 

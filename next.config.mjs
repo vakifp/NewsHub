@@ -4,6 +4,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    domains: ["firebasestorage.googleapis.com"],
     remotePatterns: [
       {
         protocol: 'https',
@@ -13,9 +14,6 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'i.pravatar.cc',
       },
-      {
-        domains: ["firebasestorage.googleapis.com"],
-      }
     ],
   },
 };
