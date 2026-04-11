@@ -7,7 +7,6 @@ import Link from "next/link";
 import Image from "next/image";
 import BlogCard from "./BlogCard";
 import { Clock, Eye, TrendingUp, Zap, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
 import AdSenseUnit from "./AdSenseUnit";
 
 export default function BlogGrid() {
