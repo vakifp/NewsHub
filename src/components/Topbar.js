@@ -76,6 +76,7 @@ export default function Topbar(){
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 rounded-full bg-gray-800 hover:bg-blue-600 transition"
+                aria-label="Visit our Facebook page"
               >
                 <Facebook size={16}/>
               </a>
@@ -87,6 +88,7 @@ export default function Topbar(){
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 rounded-full bg-gray-800 hover:bg-sky-500 transition"
+                aria-label="Visit our Twitter page"
               >
                 <Twitter size={16}/>
               </a>
@@ -98,6 +100,7 @@ export default function Topbar(){
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 rounded-full bg-gray-800 hover:bg-pink-500 transition"
+                aria-label="Visit our Instagram page"
               >
                 <Instagram size={16}/>
               </a>
@@ -109,6 +112,7 @@ export default function Topbar(){
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 rounded-full bg-gray-800 hover:bg-red-600 transition"
+                aria-label="Visit our YouTube channel"
               >
                 <Youtube size={16}/>
               </a>

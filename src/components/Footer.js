@@ -21,15 +21,15 @@ export default function Footer() {
   if (!settings) return null;
 
   return (
-    <footer className="bg-background border-t border-border mt-20">
-      <div className="max-w-7xl mx-auto px-6 py-20">
+    <footer className="bg-background border-t border-border mt-20 pb-24 md:pb-8">
+      <div className="max-w-[1440px] mx-auto px-6 py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
           
           {/* BRAND & DESC */}
           <div className="space-y-6">
             <Link href="/" className="inline-block">
               {settings.logo ? (
-                <img src={settings.logo} className="h-10" alt="Logo" />
+                <img src={settings.logo} className="h-10" alt="Logo" width={120} height={40} />
               ) : (
                 <span className="font-extrabold text-2xl tracking-tighter text-primary">
                   {settings.siteName || "Krymoz"}
@@ -52,6 +52,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`p-2.5 rounded-xl bg-accent/50 transition-all ${social.color} hover:scale-110 active:scale-95`}
+                  aria-label={`Visit our ${social.icon.displayName || 'social media'} page`}
                 >
                   <social.icon size={18} />
                 </a>
@@ -86,11 +87,11 @@ export default function Footer() {
             <h3 className="font-bold text-base mb-6 uppercase tracking-widest text-foreground/70">Trending Topics</h3>
             <ul className="space-y-4">
               {[
-                { name: "Windows Guides", href: "/category/windows" },
-                { name: "Tech News", href: "/category/tech" },
-                { name: "Error Fixes", href: "/category/fixes" },
-                { name: "How To", href: "/category/how-to" },
-                { name: "Lifestyle", href: "/category/lifestyle" },
+                { name: "Future Insight", href: "/category/future" },
+                { name: "Master Guides", href: "/category/guides" },
+                { name: "Intelligence", href: "/category/intelligence" },
+                { name: "Tech Trends", href: "/category/trends" },
+                { name: "Modern Tech", href: "/category/technology" },
               ].map((link) => (
                 <li key={link.name}>
                   <Link href={link.href} className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center group">
@@ -107,12 +108,14 @@ export default function Footer() {
             <h3 className="font-bold text-base mb-6 uppercase tracking-widest text-foreground/70">Newsletter</h3>
             <p className="text-muted-foreground text-sm">Subscribe to get the latest tech fixes directly in your inbox.</p>
             <div className="flex gap-2">
+              <label htmlFor="newsletter-email" className="sr-only">Email address</label>
               <input 
+                id="newsletter-email"
                 type="email" 
                 placeholder="Email address" 
                 className="bg-accent/50 border border-border px-4 py-2.5 rounded-xl text-sm w-full focus:ring-2 focus:ring-primary/20 transition-all outline-none"
               />
-              <button className="bg-primary text-primary-foreground p-3 rounded-xl hover:opacity-90 transition-all">
+              <button className="bg-primary text-primary-foreground p-3 rounded-xl hover:opacity-90 transition-all" aria-label="Subscribe to newsletter">
                 <Mail size={18} />
               </button>
             </div>
@@ -134,8 +137,8 @@ export default function Footer() {
           <p>© {year} {settings.copyright || settings.siteName || "Krymoz"}. All rights reserved.</p>
           <div className="flex gap-6">
             <Link href="/terms-of-service" className="hover:text-foreground transition-colors">Terms of Service</Link>
-            <Link href="/" className="hover:text-foreground transition-colors">Cookie Policy</Link>
-            <Link href="/" className="hover:text-foreground transition-colors">Sitemap</Link>
+            <Link href="/cookie-policy" className="hover:text-foreground transition-colors">Cookie Policy</Link>
+            <Link href="/sitemap" className="hover:text-foreground transition-colors">Sitemap</Link>
           </div>
         </div>
       </div>

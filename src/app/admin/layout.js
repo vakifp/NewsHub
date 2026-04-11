@@ -21,6 +21,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function AdminLayout({ children }) {
   const path = usePathname();
@@ -167,6 +168,8 @@ export default function AdminLayout({ children }) {
               <Bell size={20} />
               <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full ring-2 ring-white dark:ring-[#0b1220]" />
             </button>
+
+            <ThemeToggle />
             
             <Link href="/" target="_blank" className="hidden sm:flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-primary transition-colors border px-4 py-2 rounded-xl">
               Visit Site <ExternalLink size={14} />

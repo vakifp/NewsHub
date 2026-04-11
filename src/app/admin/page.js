@@ -20,7 +20,6 @@ import {
   ExternalLink
 } from "lucide-react";
 import { motion } from "framer-motion";
-import SeedButton from "@/components/admin/SeedButton";
 
 
 export default function AdminDashboard() {
@@ -151,7 +150,6 @@ export default function AdminDashboard() {
 
         {/* TRENDING & QUICK ACTIONS */}
         <div className="lg:col-span-4 space-y-8">
-          <SeedButton />
           <div className="bg-white dark:bg-[#0b1220] rounded-[2rem] border dark:border-gray-800 p-8 shadow-sm">
 
             <h3 className="text-xl font-black mb-6 flex items-center gap-3">

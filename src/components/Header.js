@@ -63,12 +63,8 @@ export default function Header() {
   if (!mounted) return null;
 
   return (
-    <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        shadow ? "glass py-2" : "bg-background border-b py-4"
-      }`}
-    >
-      <nav className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between">
+    <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${shadow ? "glass" : "bg-background"}`}>
+      <div className="max-w-[1440px] mx-auto px-6 h-20 flex items-center justify-between relative">
         {/* LEFT: LOGO + DESKTOP MENU */}
         <div className="flex items-center gap-10">
           <Link href="/" className="flex items-center gap-2 group relative">
@@ -77,6 +73,8 @@ export default function Header() {
                 src="/logo.png" 
                 alt="Krymoz Logo" 
                 className="w-full h-full object-cover"
+                width={48}
+                height={48}
               />
             </div>
             <div className="flex flex-col">
@@ -122,6 +120,7 @@ export default function Header() {
                   onClick={logout}
                   className="text-destructive hover:text-destructive/80 transition-colors"
                   title="Logout"
+                  aria-label="Logout"
                 >
                   <LogOut size={18} />
                 </button>
@@ -145,7 +144,7 @@ export default function Header() {
             {menu ? <X size={26} /> : <Menu size={26} />}
           </button>
         </div>
-      </nav>
+      </div>
 
       {/* MOBILE MENU DRAWER */}
       <AnimatePresence>

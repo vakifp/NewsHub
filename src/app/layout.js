@@ -6,11 +6,13 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata = {
@@ -70,14 +72,6 @@ import Script from "next/script";
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5290024709923218"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
-      </head>
       <body suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-blue-500/30 pb-24 md:pb-0`}>
         <StoreProvider>
           <ThemeProvider
@@ -90,6 +84,12 @@ export default function RootLayout({ children }) {
             <BottomNav />
           </ThemeProvider>
         </StoreProvider>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5290024709923218"
+          crossOrigin="anonymous"
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   );

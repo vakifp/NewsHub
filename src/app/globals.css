@@ -70,7 +70,6 @@
 @layer base {
   * {
     @apply border-border;
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
   }
   .prose h1 { @apply text-4xl md:text-5xl font-black tracking-tighter mb-8 text-foreground; }
   .prose h2 { @apply text-3xl md:text-4xl font-black tracking-tight mt-12 mb-6 text-foreground; }

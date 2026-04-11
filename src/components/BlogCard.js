@@ -1,18 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Clock, Eye, ArrowRight, Bookmark, Share2 } from "lucide-react";
-import { motion } from "framer-motion";
 
 export default function BlogCard({ post = {}, loading = false, variant = "grid" }) {
-  const [imgLoaded, setImgLoaded] = useState(false);
-
-  useEffect(() => {
-    setImgLoaded(false);
-  }, [post.img]);
-
   if (loading) {
     return (
       <div className="flex flex-col h-full rounded-[2rem] border border-border/50 bg-card/50 overflow-hidden relative">
@@ -36,17 +28,14 @@ export default function BlogCard({ post = {}, loading = false, variant = "grid" 
   const category = post.category || "General";
   const postUrl = `/blog/${post.slug}`;
 
-  const MotionLink = motion.create(Link);
+
 
   /* ================= STYLE 1: MODERN GRID (DEFAULT) ================= */
   if (variant === "grid") {
     return (
-      <MotionLink
+      <Link
         href={postUrl}
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="group flex flex-col h-full bg-card border border-border/50 rounded-[2.5rem] overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500"
+        className="group flex flex-col h-full bg-card border border-border/50 rounded-[2.5rem] overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-shadow duration-500"
       >
         <div className="relative h-64 overflow-hidden bg-muted">
           <Image 
@@ -56,7 +45,7 @@ export default function BlogCard({ post = {}, loading = false, variant = "grid" 
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
             className="object-cover group-hover:scale-110 transition-transform duration-700" 
           />
-          <div className="absolute top-6 left-6 px-4 py-1.5 rounded-full bg-white/90 dark:bg-black/90 backdrop-blur-md text-[10px] font-black uppercase tracking-widest border border-white/20 z-10">
+          <div className="absolute top-6 left-6 px-4 py-1.5 rounded-full bg-white/90 dark:bg-black/90 backdrop-blur-md text-[10px] font-black uppercase tracking-widest border border-white/20 z-10 text-emerald-600 dark:text-emerald-400 shadow-sm">
             {category}
           </div>
         </div>
@@ -68,14 +57,14 @@ export default function BlogCard({ post = {}, loading = false, variant = "grid" 
           <h3 className="text-xl font-black leading-tight group-hover:text-primary transition-colors line-clamp-2">{title}</h3>
           <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">{desc}</p>
         </div>
-      </MotionLink>
+      </Link>
     );
   }
 
   /* ================= STYLE 2: FULL OVERLAY (GLASS) ================= */
   if (variant === "overlay") {
     return (
-      <MotionLink
+      <Link
         href={postUrl}
         className="group relative h-[400px] rounded-[2.5rem] overflow-hidden shadow-xl bg-muted"
       >
@@ -84,23 +73,23 @@ export default function BlogCard({ post = {}, loading = false, variant = "grid" 
           alt={title} 
           fill
           sizes="(max-width: 768px) 100vw, 50vw"
-          className="object-cover transition-transform duration-1000 group-hover:scale-110" 
+          className="object-cover transition-transform duration-1000 will-change-transform group-hover:scale-110" 
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
         <div className="absolute bottom-0 left-0 p-8 w-full">
           <span className="px-3 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase tracking-widest mb-4 inline-block">{category}</span>
           <h3 className="text-2xl font-black text-white leading-tight line-clamp-2">{title}</h3>
         </div>
-      </MotionLink>
+      </Link>
     );
   }
 
   /* ================= STYLE 3: WIDE (MEDIA LEFT) ================= */
   if (variant === "wide") {
     return (
-      <MotionLink
+      <Link
         href={postUrl}
-        className="group flex flex-col md:flex-row gap-6 p-4 rounded-[2.5rem] bg-accent/20 border border-transparent hover:border-primary/20 hover:bg-white dark:hover:bg-card transition-all"
+        className="group flex flex-col md:flex-row gap-6 p-4 rounded-[2.5rem] bg-accent/20 border border-transparent hover:border-primary/20 hover:bg-white dark:hover:bg-card transition-colors"
       >
         <div className="md:w-1/3 aspect-video md:aspect-square rounded-[2rem] overflow-hidden shrink-0 relative bg-muted">
           <Image 
@@ -116,7 +105,7 @@ export default function BlogCard({ post = {}, loading = false, variant = "grid" 
           <h3 className="text-lg font-black leading-tight group-hover:text-primary transition-colors line-clamp-2">{title}</h3>
           <p className="text-xs text-muted-foreground line-clamp-2">{desc}</p>
         </div>
-      </MotionLink>
+      </Link>
     );
   }
 
@@ -147,7 +136,7 @@ export default function BlogCard({ post = {}, loading = false, variant = "grid" 
           alt={title} 
           fill
           sizes="96px"
-          className="object-cover group-hover:scale-110 transition-all duration-700" 
+          className="object-cover group-hover:scale-110 transition-transform duration-700 will-change-transform" 
         />
       </div>
       <div className="flex flex-col gap-2 flex-grow">
