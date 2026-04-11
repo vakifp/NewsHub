@@ -109,15 +109,13 @@ export default function AllPosts({ searchQuery = "" }) {
         {/* LOAD MORE ACTION */}
         {visible < posts.length && (
           <div className="mt-20 text-center">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={loadMore}
-              className="px-12 py-4 rounded-full bg-primary text-white font-black text-sm uppercase tracking-widest shadow-2xl shadow-primary/20 hover:opacity-90 transition-all flex items-center gap-4 mx-auto"
+              className="px-12 py-4 rounded-full bg-primary text-white font-black text-sm uppercase tracking-widest shadow-2xl shadow-primary/20 hover:opacity-90 hover:scale-105 active:scale-95 transition-all flex items-center gap-4 mx-auto"
             >
               Load More Stories
-              <div className="w-1.5 h-1.5 rounded-full bg-white/40 group-hover:bg-white animate-bounce" />
-            </motion.button>
+              <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-bounce" />
+            </button>
           </div>
         )}
       </div>
