@@ -20,6 +20,7 @@ import DOMPurify from "dompurify";
 import { Clock, Eye, Share2, Bookmark, ChevronLeft, Calendar, User, MessageSquare, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence, useScroll, useSpring } from "framer-motion";
 import CommentSection from "@/components/CommentSection";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default function Details() {
   const { slug } = useParams();
@@ -205,6 +206,11 @@ export default function Details() {
           
           <main className="flex flex-col gap-16">
             
+            {/* BREADCRUMBS */}
+            <div className="flex justify-center -mt-10 mb-6">
+              <Breadcrumbs />
+            </div>
+
             {/* FLOATING ACTION BAR: Fixed on Desktop */}
             <div className="hidden xl:block fixed left-[calc(50%-550px)] top-1/2 -translate-y-1/2 z-40">
               <div className="flex flex-col gap-6 items-center bg-card/40 backdrop-blur-xl p-5 rounded-full border border-white/5 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)]">

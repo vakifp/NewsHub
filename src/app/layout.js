@@ -64,10 +64,18 @@ export const metadata = {
   verification: {
     google: "OTqEIe9DJQdn36STFcbkvaFI3QmTPOU2RGQ7vfiOMew",
   },
+  alternates: {
+    canonical: "https://www.krymoz.com",
+    types: {
+      'application/rss+xml': 'https://www.krymoz.com/feed.xml',
+    },
+  },
+  category: 'technology',
 };
 
 import BottomNav from "@/components/BottomNav";
 import Script from "next/script";
+import CookieConsent from "@/components/CookieConsent";
 
 export default function RootLayout({ children }) {
   return (
@@ -80,15 +88,39 @@ export default function RootLayout({ children }) {
             enableSystem
             disableTransitionOnChange
           >
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "Organization",
+                  "name": "Krymoz",
+                  "url": "https://www.krymoz.com",
+                  "logo": "https://www.krymoz.com/logo.png",
+                  "sameAs": [
+                    "https://facebook.com/krymoz",
+                    "https://twitter.com/krymoz_editorial",
+                    "https://instagram.com/krymoz_tech"
+                  ],
+                  "contactPoint": {
+                    "@type": "ContactPoint",
+                    "telephone": "+1-000-000-0000",
+                    "contactType": "customer service",
+                    "email": "support@krymoz.com"
+                  }
+                })
+              }}
+            />
             {children}
             <BottomNav />
+            <CookieConsent />
           </ThemeProvider>
         </StoreProvider>
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5290024709923218"
           crossOrigin="anonymous"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
         />
       </body>
     </html>
