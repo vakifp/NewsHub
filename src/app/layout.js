@@ -71,6 +71,9 @@ export const metadata = {
     },
   },
   category: 'technology',
+  other: {
+    "google-adsense-account": "ca-pub-5290024709923218",
+  },
 };
 
 import BottomNav from "@/components/BottomNav";
